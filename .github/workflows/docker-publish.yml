@@ -44,11 +44,14 @@ jobs:
 
       - name: Determine version
         id: version
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          GIT_REF: ${{ github.ref }}
         run: |
-          if [ -n "${{ github.event.inputs.tag }}" ]; then
-            VERSION="${{ github.event.inputs.tag }}"
-          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            VERSION="${{ github.ref#refs/tags/ }}"
+          if [ -n "$INPUT_TAG" ]; then
+            VERSION="$INPUT_TAG"
+          elif [[ "$GIT_REF" == refs/tags/* ]]; then
+            VERSION="${GIT_REF#refs/tags/}"
           else
             VERSION="nightly-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           fi
@@ -99,11 +102,14 @@ jobs:
     steps:
       - name: Determine version
         id: version
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          GIT_REF: ${{ github.ref }}
         run: |
-          if [ -n "${{ github.event.inputs.tag }}" ]; then
-            VERSION="${{ github.event.inputs.tag }}"
-          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            VERSION="${{ github.ref#refs/tags/ }}"
+          if [ -n "$INPUT_TAG" ]; then
+            VERSION="$INPUT_TAG"
+          elif [[ "$GIT_REF" == refs/tags/* ]]; then
+            VERSION="${GIT_REF#refs/tags/}"
           else
             VERSION="nightly-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           fi
