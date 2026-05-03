@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   Branch,
   BranchMessages,
@@ -43,6 +50,7 @@ interface PlaygroundChatProps {
   onRegenerateMessage?: (message: MessageType) => void
   onEditMessage?: (message: MessageType) => void
   onDeleteMessage?: (message: MessageType) => void
+  onClearMessages?: () => void
   isGenerating?: boolean
   editingKey?: string | null
   onSaveEdit?: (newContent: string) => void
@@ -56,6 +64,7 @@ export function PlaygroundChat({
   onRegenerateMessage,
   onEditMessage,
   onDeleteMessage,
+  onClearMessages,
   isGenerating = false,
   editingKey,
   onSaveEdit,
@@ -86,6 +95,28 @@ export function PlaygroundChat({
       {/* Remove outer padding; apply padding to inner centered container to align with input */}
       <ConversationContent className='p-0'>
         <div className='mx-auto w-full max-w-4xl px-4 py-4'>
+          {messages.length > 0 && onClearMessages && (
+            <div className='mb-2 flex justify-end'>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='size-7 text-muted-foreground hover:text-destructive'
+                      onClick={onClearMessages}
+                      disabled={isGenerating}
+                    >
+                      <Trash2 className='size-4' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Clear all messages</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
           {messages.map((message, messageIndex) => {
             const { versions = [] } = message
             const isLastAssistantMessage =
