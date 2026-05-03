@@ -15,7 +15,7 @@ const STEPS = [
   {
     icon: MessageSquare,
     title: '加入交流群',
-    description: '请先加入我们的交流群，获取群号后申请加入。',
+    description: '请先加入我们的交流群，1092522145，并阅读群公告',
   },
   {
     icon: Bot,
