@@ -60,6 +60,9 @@ func formatUserLogs(logs []*Log, startIdx int) {
 			delete(otherMap, "admin_info")
 			// delete(otherMap, "reject_reason")
 			delete(otherMap, "stream_status")
+			// Hide upstream model mapping info from non-admin users.
+			delete(otherMap, "upstream_model_name")
+			delete(otherMap, "is_model_mapped")
 			// Ensure model_name is always available in Other for non-admin users.
 			if logs[i].ModelName != "" {
 				otherMap["user_model_name"] = logs[i].ModelName
