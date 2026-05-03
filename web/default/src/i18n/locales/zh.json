@@ -1852,6 +1852,7 @@
     "io.net Deployments": "io.net 部署",
     "IP": "IP",
     "IP Address": "IP 地址",
+    "IP is only recorded for usage and error logs when IP recording is enabled in user settings": "仅当用户设置开启IP记录时，才会记录使用和错误日志的IP地址",
     "IP Filter Mode": "IP 过滤模式",
     "IP Restriction": "IP 限制",
     "IP Whitelist (supports CIDR)": "IP 白名单（支持 CIDR 表达式）",

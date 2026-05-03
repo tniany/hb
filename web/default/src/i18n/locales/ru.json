@@ -1852,6 +1852,7 @@
     "io.net Deployments": "Развертывания io.net",
     "IP": "IP",
     "IP Address": "IP-адрес",
+    "IP is only recorded for usage and error logs when IP recording is enabled in user settings": "IP-адрес записывается только для журналов использования и ошибок, когда запись IP включена в настройках пользователя",
     "IP Filter Mode": "Режим фильтрации IP",
     "IP Restriction": "Ограничение IP",
     "IP Whitelist (supports CIDR)": "Белый список IP (поддерживает CIDR)",

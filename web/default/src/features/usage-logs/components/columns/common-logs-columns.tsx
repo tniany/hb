@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
-import { CircleAlert, Sparkles, KeyRound } from 'lucide-react'
+import { CircleAlert, Globe, HelpCircle, Sparkles, KeyRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import {
@@ -433,6 +433,65 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
       }
     )
   }
+
+  columns.push({
+    accessorKey: 'ip',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title={
+          <span className='flex items-center gap-1'>
+            {t('IP')}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className='text-muted-foreground/50 size-3 cursor-help' />
+                </TooltipTrigger>
+                <TooltipContent>
+                  {t(
+                    'IP is only recorded for usage and error logs when IP recording is enabled in user settings'
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </span>
+        }
+      />
+    ),
+    cell: function IpCell({ row }) {
+      const { sensitiveVisible } = useUsageLogsContext()
+      const log = row.original
+      const ip = row.getValue('ip') as string
+
+      const showIp =
+        ((log.type === 2 || log.type === 5) && ip) ||
+        (isAdmin && log.type === 1 && ip)
+
+      if (!showIp) return null
+
+      const displayIp = sensitiveVisible ? ip : '••••'
+
+      return (
+        <span
+          className={cn(
+            'inline-flex max-w-[140px] items-center gap-1 truncate rounded-md border px-1.5 py-0.5 font-mono text-xs',
+            'border-amber-200/40 bg-amber-50/35 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/15 dark:text-amber-400/85'
+          )}
+          title={sensitiveVisible ? ip : undefined}
+          role='button'
+          tabIndex={0}
+          onClick={() => {
+            if (sensitiveVisible && ip) navigator.clipboard.writeText(ip)
+          }}
+        >
+          <Globe className='size-3 shrink-0' aria-hidden='true' />
+          <span className='truncate'>{displayIp}</span>
+        </span>
+      )
+    },
+    meta: { label: t('IP'), mobileHidden: true },
+    size: 140,
+  })
 
   columns.push({
     accessorKey: 'token_name',
