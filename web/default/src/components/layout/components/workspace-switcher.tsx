@@ -26,19 +26,13 @@ import { type Workspace } from '../types'
 type WorkspaceSwitcherProps = {
   workspaces: Workspace[]
   defaultName?: string
-  defaultVersion?: string
 }
 
-/**
- * Workspace switcher component
- * Allows users to switch between different workspaces
- * - Regular users can only see the default workspace
- * - Super administrators can see the system settings workspace
- */
+const QUOTE_API = 'https://api.suyanw.cn/api/qg.php'
+
 export function WorkspaceSwitcher({
   workspaces,
   defaultName = 'New API',
-  defaultVersion,
 }: WorkspaceSwitcherProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -50,10 +44,17 @@ export function WorkspaceSwitcher({
     (state) => state.auth.user?.role === ROLE.SUPER_ADMIN
   )
   const { activeWorkspace, setActiveWorkspace } = useWorkspace()
+  const [quote, setQuote] = React.useState('')
 
-  // Handle workspace list:
-  // 1. Populate first workspace with system info
-  // 2. Filter based on user permissions (non-super admins cannot see system settings)
+  React.useEffect(() => {
+    fetch(QUOTE_API)
+      .then((res) => res.text())
+      .then((text) => {
+        if (text) setQuote(text.trim())
+      })
+      .catch(() => {})
+  }, [])
+
   const availableWorkspaces = React.useMemo(
     () =>
       workspaces
@@ -62,7 +63,7 @@ export function WorkspaceSwitcher({
             ? {
                 ...workspace,
                 name: status?.system_name || defaultName,
-                plan: status?.version || defaultVersion || t('Unknown version'),
+                plan: quote || '公益的ai中转平台',
               }
             : workspace
         )
@@ -70,15 +71,7 @@ export function WorkspaceSwitcher({
           (workspace) =>
             isSuperAdmin || workspace.id !== WORKSPACE_IDS.SYSTEM_SETTINGS
         ),
-    [
-      workspaces,
-      status?.system_name,
-      status?.version,
-      defaultName,
-      defaultVersion,
-      isSuperAdmin,
-      t,
-    ]
+    [workspaces, status?.system_name, defaultName, isSuperAdmin, quote]
   )
 
   // Initialize and synchronize active workspace
@@ -138,7 +131,20 @@ export function WorkspaceSwitcher({
       )}
       <div className='grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden'>
         <span className='truncate font-semibold'>{activeWorkspace.name}</span>
-        <span className='truncate text-xs'>{activeWorkspace.plan}</span>
+        {activeWorkspace.plan && activeWorkspace.plan.length > 15 ? (
+          <div className='quote-marquee-wrap relative h-4 max-w-[120px] overflow-hidden'>
+            <div
+              className='quote-marquee-text absolute left-0 top-0 whitespace-nowrap text-xs leading-4'
+              style={{
+                animation: `quote-marquee ${Math.max(6, activeWorkspace.plan.length * 0.3)}s ease-in-out infinite alternate`,
+              }}
+            >
+              {activeWorkspace.plan}
+            </div>
+          </div>
+        ) : (
+          <span className='truncate text-xs'>{activeWorkspace.plan}</span>
+        )}
       </div>
       {canSwitchWorkspace && (
         <ChevronsUpDown className='ms-auto group-data-[collapsible=icon]:hidden' />
@@ -147,6 +153,16 @@ export function WorkspaceSwitcher({
   )
 
   return (
+    <>
+    <style>{`
+      @keyframes quote-marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(calc(-100% + 120px)); }
+      }
+      .quote-marquee-wrap:hover .quote-marquee-text {
+        animation-play-state: paused;
+      }
+    `}</style>
     <SidebarMenu>
       <SidebarMenuItem>
         {canSwitchWorkspace ? (
@@ -203,5 +219,6 @@ export function WorkspaceSwitcher({
         )}
       </SidebarMenuItem>
     </SidebarMenu>
+    </>
   )
 }
