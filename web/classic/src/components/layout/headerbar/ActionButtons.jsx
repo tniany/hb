@@ -62,7 +62,7 @@ const ActionButtons = ({
         href='https://qm.qq.com/q/KbbU3BMdO2'
         target='_blank'
         rel='noopener noreferrer'
-        className='!p-1.5 !text-current !rounded-full !bg-semi-color-fill-0 dark:!bg-semi-color-fill-1 hover:!bg-semi-color-fill-1 flex items-center justify-center transition-colors'
+        className='!p-1.5 !text-current !rounded-full !bg-semi-color-fill-0 dark:!bg-semi-color-fill-1 hover:!bg-semi-color-fill-1 hidden md:flex items-center justify-center transition-colors'
         title='QQ群'
       >
         <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><path d='M12 2C6.48 2 2 6.48 2 12c0 2.76 1.12 5.26 2.93 7.07L4 22l2.93-1.53C8.74 21.88 10.34 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z'/><circle cx='8.5' cy='11' r='1.5' fill='currentColor'/><circle cx='15.5' cy='11' r='1.5' fill='currentColor'/></svg>

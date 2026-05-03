@@ -106,7 +106,7 @@ export function AppHeader({
               href='https://qm.qq.com/q/KbbU3BMdO2'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-muted-foreground hover:text-foreground inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-medium transition-colors'
+              className='text-muted-foreground hover:text-foreground hidden sm:inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-medium transition-colors'
             >
               QQ群
             </a>

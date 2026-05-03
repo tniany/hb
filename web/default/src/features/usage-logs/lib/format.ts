@@ -146,8 +146,10 @@ export function formatModelName(log: UsageLog): {
       other.upstream_model_name !== ''
   )
 
+  const name = log.model_name || other?.user_model_name || ''
+
   return {
-    name: log.model_name,
+    name,
     isMapped,
     actualModel: isMapped ? other.upstream_model_name : undefined,
   }

@@ -809,7 +809,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
               <DetailSection label={t('Model Mapping')}>
                 <DetailRow
                   label={t('Request Model')}
-                  value={props.log.model_name}
+                  value={props.log.model_name || other?.user_model_name || ''}
                   mono
                 />
                 <DetailRow

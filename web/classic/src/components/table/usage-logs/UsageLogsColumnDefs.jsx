@@ -271,14 +271,15 @@ function renderBillingTag(record, t) {
 
 function renderModelName(record, copyText, t) {
   let other = getLogOther(record.other);
+  let displayModelName = record.model_name || other?.user_model_name || '';
   let modelMapped =
     other?.is_model_mapped &&
     other?.upstream_model_name &&
     other?.upstream_model_name !== '';
   if (!modelMapped) {
-    return renderModelTag(record.model_name, {
+    return renderModelTag(displayModelName, {
       onClick: (event) => {
-        copyText(event, record.model_name).then((r) => {});
+        copyText(event, displayModelName).then((r) => {});
       },
     });
   } else {
@@ -293,9 +294,9 @@ function renderModelName(record, copyText, t) {
                     <Typography.Text strong style={{ marginRight: 8 }}>
                       {t('请求并计费模型')}:
                     </Typography.Text>
-                    {renderModelTag(record.model_name, {
+                    {renderModelTag(displayModelName, {
                       onClick: (event) => {
-                        copyText(event, record.model_name).then((r) => {});
+                        copyText(event, displayModelName).then((r) => {});
                       },
                     })}
                   </div>
@@ -315,9 +316,9 @@ function renderModelName(record, copyText, t) {
               </div>
             }
           >
-            {renderModelTag(record.model_name, {
+            {renderModelTag(displayModelName, {
               onClick: (event) => {
-                copyText(event, record.model_name).then((r) => {});
+                copyText(event, displayModelName).then((r) => {});
               },
               suffixIcon: (
                 <Route

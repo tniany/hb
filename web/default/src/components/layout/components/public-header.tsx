@@ -278,15 +278,6 @@ export function PublicHeader(props: PublicHeaderProps) {
             )}
             style={{ transitionDelay: mobileOpen ? '250ms' : '0ms' }}
           >
-            <a
-              href='https://qm.qq.com/q/KbbU3BMdO2'
-              target='_blank'
-              rel='noopener noreferrer'
-              onClick={() => setMobileOpen(false)}
-              className='text-muted-foreground hover:text-foreground inline-flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-opacity hover:opacity-90 active:opacity-80'
-            >
-              QQ群
-            </a>
             {showAuthButtons && (
               <Link
                 to={isAuthenticated ? '/dashboard' : '/sign-in'}

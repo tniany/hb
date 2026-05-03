@@ -60,6 +60,10 @@ func formatUserLogs(logs []*Log, startIdx int) {
 			delete(otherMap, "admin_info")
 			// delete(otherMap, "reject_reason")
 			delete(otherMap, "stream_status")
+			// Ensure model_name is always available in Other for non-admin users.
+			if logs[i].ModelName != "" {
+				otherMap["user_model_name"] = logs[i].ModelName
+			}
 		}
 		logs[i].Other = common.MapToJsonStr(otherMap)
 		logs[i].Id = startIdx + i + 1

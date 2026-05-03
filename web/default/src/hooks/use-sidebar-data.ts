@@ -15,6 +15,7 @@ import {
   CreditCard,
   ListTodo,
   Settings,
+  Fish,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { WORKSPACE_IDS } from '@/components/layout/lib/workspace-registry'
@@ -95,6 +96,11 @@ export function useSidebarData(): SidebarData {
             title: t('Profile'),
             url: '/profile',
             icon: User,
+          },
+          {
+            title: t('Claim Fish'),
+            url: '/claim-fish',
+            icon: Fish,
           },
         ],
       },
