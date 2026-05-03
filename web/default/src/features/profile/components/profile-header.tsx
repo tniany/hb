@@ -100,6 +100,11 @@ export function ProfileHeader({ profile, loading }: ProfileHeaderProps) {
                 variant='neutral'
                 copyable={false}
               />
+              {profile.id && (
+                <span className='text-muted-foreground inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-xs'>
+                  ID: {profile.id}
+                </span>
+              )}
             </div>
 
             <div className='text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs sm:gap-x-4 sm:text-sm'>
