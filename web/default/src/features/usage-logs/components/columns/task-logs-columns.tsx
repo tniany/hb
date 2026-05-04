@@ -153,7 +153,7 @@ export function useTaskLogsColumns(isAdmin: boolean): ColumnDef<TaskLog>[] {
             </button>
           )
         },
-        meta: { label: t('User'), mobileHidden: true },
+        meta: { label: t('User'), mobileBadge: true },
       }
     )
   }
