@@ -380,5 +380,16 @@ func SetApiRouter(router *gin.Engine) {
 			deploymentsRoute.POST("/:id/extend", controller.ExtendDeployment)
 			deploymentsRoute.DELETE("/:id", controller.DeleteDeployment)
 		}
+
+		// Risk Control
+		riskControlRoute := apiRouter.Group("/risk_control")
+		riskControlRoute.Use(middleware.AdminAuth())
+		{
+			riskControlRoute.GET("/stats", controller.GetRiskControlStats)
+			riskControlRoute.GET("/multi_account_ips", controller.GetMultiAccountIps)
+			riskControlRoute.GET("/ip_users", controller.GetIpUsers)
+			riskControlRoute.GET("/abnormal_users", controller.GetAbnormalUsers)
+			riskControlRoute.POST("/ban_user", controller.BannedUser)
+		}
 	}
 }

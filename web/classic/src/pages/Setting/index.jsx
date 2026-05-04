@@ -34,6 +34,7 @@ import {
   CreditCard,
   Server,
   Activity,
+  ShieldCheck,
 } from 'lucide-react';
 
 import SystemSetting from '../../components/settings/SystemSetting';
@@ -49,6 +50,7 @@ import DrawingSetting from '../../components/settings/DrawingSetting';
 import PaymentSetting from '../../components/settings/PaymentSetting';
 import ModelDeploymentSetting from '../../components/settings/ModelDeploymentSetting';
 import PerformanceSetting from '../../components/settings/PerformanceSetting';
+import SettingsRiskControl from './Operation/SettingsRiskControl';
 
 const Setting = () => {
   const { t } = useTranslation();
@@ -167,6 +169,16 @@ const Setting = () => {
       ),
       content: <SystemSetting />,
       itemKey: 'system',
+    });
+    panes.push({
+      tab: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <ShieldCheck size={18} />
+          {t('风控管理')}
+        </span>
+      ),
+      content: <SettingsRiskControl />,
+      itemKey: 'risk-control',
     });
     panes.push({
       tab: (

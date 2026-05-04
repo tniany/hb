@@ -3,6 +3,7 @@ import {
   Settings,
   Shield,
   ShieldAlert,
+  ShieldCheck,
   Layout,
   Plug,
   Box,
@@ -63,6 +64,16 @@ export function getSystemSettingsNavGroups(t: TFunction): NavGroup[] {
           title: t('Maintenance'),
           icon: Wrench,
           items: getMaintenanceSectionNavItems(t),
+        },
+        {
+          title: t('Risk Control'),
+          icon: ShieldCheck,
+          items: [
+            {
+              title: t('Risk Control'),
+              url: '/system-settings/risk-control',
+            },
+          ],
         },
       ],
     },
