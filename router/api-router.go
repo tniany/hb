@@ -395,5 +395,12 @@ func SetApiRouter(router *gin.Engine) {
 			riskControlRoute.POST("/whitelist/add", controller.AddRiskControlWhitelistUser)
 			riskControlRoute.POST("/whitelist/remove", controller.RemoveRiskControlWhitelistUser)
 		}
+
+		errorMappingRoute := apiRouter.Group("/error_mappings")
+		errorMappingRoute.Use(middleware.AdminAuth())
+		{
+			errorMappingRoute.GET("", controller.GetErrorMappings)
+			errorMappingRoute.GET("/:code", controller.GetErrorMappingByCode)
+		}
 	}
 }

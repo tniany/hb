@@ -180,6 +180,8 @@ func InitOptionMap() {
 	common.OptionMap["AutomaticRetryStatusCodes"] = operation_setting.AutomaticRetryStatusCodesToString()
 	common.OptionMap["ExposeRatioEnabled"] = strconv.FormatBool(ratio_setting.IsExposeRatioEnabled())
 	common.OptionMap["RiskControlWhitelist"] = ""
+	common.OptionMap["MaintenanceModeEnabled"] = strconv.FormatBool(common.MaintenanceModeEnabled)
+	common.OptionMap["MaintenanceModeMessage"] = common.MaintenanceModeMessage
 
 	// 自动添加所有注册的模型配置
 	modelConfigs := config.GlobalConfig.ExportAllConfigs()
@@ -332,6 +334,8 @@ func updateOptionMap(key string, value string) (err error) {
 			setting.DefaultUseAutoGroup = boolValue
 		case "ExposeRatioEnabled":
 			ratio_setting.SetExposeRatioEnabled(boolValue)
+		case "MaintenanceModeEnabled":
+			common.MaintenanceModeEnabled = boolValue
 		}
 	}
 	switch key {
@@ -552,6 +556,8 @@ func updateOptionMap(key string, value string) (err error) {
 		// No additional in-memory variable to update.
 	case "RiskControlWhitelist":
 		common.RiskControlWhitelistUserIds = parseUserIds(value)
+	case "MaintenanceModeMessage":
+		common.MaintenanceModeMessage = value
 	}
 	return err
 }

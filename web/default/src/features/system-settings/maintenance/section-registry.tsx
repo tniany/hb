@@ -8,10 +8,12 @@ import {
 } from './config'
 import { HeaderNavigationSection } from './header-navigation-section'
 import { LogSettingsSection } from './log-settings-section'
+import { MaintenanceModeSection } from './maintenance-mode-section'
 import { NoticeSection } from './notice-section'
 import { PerformanceSection } from './performance-section'
 import { SidebarModulesSection } from './sidebar-modules-section'
 import { UpdateCheckerSection } from './update-checker-section'
+import { ErrorLogSection } from './error-log-section'
 
 const MAINTENANCE_SECTIONS = [
   {
@@ -105,6 +107,25 @@ const MAINTENANCE_SECTIONS = [
         }}
       />
     ),
+  },
+  {
+    id: 'maintenance-mode',
+    titleKey: 'Maintenance Mode',
+    descriptionKey: 'Configure maintenance mode settings',
+    build: (settings: MaintenanceSettings) => (
+      <MaintenanceModeSection
+        defaultValues={{
+          MaintenanceModeEnabled: settings.MaintenanceModeEnabled,
+          MaintenanceModeMessage: settings.MaintenanceModeMessage,
+        }}
+      />
+    ),
+  },
+  {
+    id: 'error-logs',
+    titleKey: 'Error Logs',
+    descriptionKey: 'View API error code mappings',
+    build: () => <ErrorLogSection />,
   },
 ] as const
 

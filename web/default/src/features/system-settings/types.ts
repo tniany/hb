@@ -256,6 +256,8 @@ export type MaintenanceSettings = {
   'performance_setting.monitor_cpu_threshold': number
   'performance_setting.monitor_memory_threshold': number
   'performance_setting.monitor_disk_threshold': number
+  MaintenanceModeEnabled: boolean
+  MaintenanceModeMessage: string
 }
 
 export type RequestLimitsSettings = {

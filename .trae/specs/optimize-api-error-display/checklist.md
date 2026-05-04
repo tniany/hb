@@ -1,0 +1,16 @@
+- [x] ErrorMapping 模型定义正确，包含所有必要字段
+- [x] AutoMigrate 包含 ErrorMapping，支持 SQLite/MySQL/PostgreSQL
+- [x] CRUD 函数正确实现（Create、GetByCode、GetList 分页、Cleanup 清理7天前数据）
+- [x] Controller 正确返回分页列表和按码查询结果
+- [x] 路由正确注册在 admin 路由组下
+- [x] Relay 报错被替换为 `涵冰api-错误提示喵：HB-{8位随机码}` 格式
+- [x] 原始错误信息正确存储到 ErrorMapping 表
+- [x] OpenAI/Claude/Realtime 三种格式的报错都被正确替换
+- [x] 维护模式开启时所有 relay 请求返回 503
+- [x] 维护模式支持自定义消息
+- [x] 维护模式开关和消息在管理员后台可配置
+- [x] 报错日志页面支持按错误码搜索
+- [x] 报错日志页面支持分页浏览
+- [x] 报错日志页面显示错误码、原始消息摘要、状态码、模型、渠道、时间
+- [x] 所有新增文本有中文翻译
+- [x] 前端仅修改默认主题，经典主题不受影响

@@ -75,6 +75,8 @@ export const DEFAULT_MAINTENANCE_SETTINGS: MaintenanceSettings = {
   'performance_setting.monitor_cpu_threshold': 90,
   'performance_setting.monitor_memory_threshold': 90,
   'performance_setting.monitor_disk_threshold': 95,
+  MaintenanceModeEnabled: false,
+  MaintenanceModeMessage: '',
 }
 
 const toBoolean = (value: unknown, fallback: boolean): boolean => {

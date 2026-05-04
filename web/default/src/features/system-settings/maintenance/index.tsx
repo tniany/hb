@@ -37,6 +37,8 @@ export function MaintenanceSettings() {
     | 'header-navigation'
     | 'sidebar-modules'
     | 'performance'
+    | 'maintenance-mode'
+    | 'error-logs'
   const sectionContent = getMaintenanceSectionContent(
     activeSection,
     settings,

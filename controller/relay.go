@@ -88,7 +88,23 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 	defer func() {
 		if newAPIError != nil {
 			logger.LogError(c, fmt.Sprintf("relay error: %s", newAPIError.Error()))
-			newAPIError.SetMessage(common.MessageWithRequestId(newAPIError.Error(), requestId))
+			errorCode := "HB-" + common.GetRandomString(8)
+			mapping := &model.ErrorMapping{
+				Code:       errorCode,
+				Message:    newAPIError.Error(),
+				StatusCode: newAPIError.StatusCode,
+				ErrorType:  string(newAPIError.GetErrorCode()),
+				ChannelId:  c.GetInt("channel_id"),
+				ModelName:  c.GetString("original_model"),
+				TokenName:  c.GetString("token_name"),
+				UserId:     c.GetInt("id"),
+				CreatedAt:  common.GetTimestamp(),
+			}
+			gopool.Go(func() {
+				_ = model.CreateErrorMapping(mapping)
+			})
+			brandMessage := "涵冰api-错误提示喵：" + errorCode
+			newAPIError.SetMessage(brandMessage)
 			switch relayFormat {
 			case types.RelayFormatOpenAIRealtime:
 				helper.WssError(c, ws, newAPIError.ToOpenAIError())
