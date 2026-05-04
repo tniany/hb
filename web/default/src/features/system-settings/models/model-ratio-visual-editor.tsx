@@ -844,14 +844,14 @@ export const ModelRatioVisualEditor = memo(
           onSave={handleBatchPricingConfirm}
           selectedModels={selectedModelNames}
           currentRatios={{
-            modelPrice,
-            modelRatio,
-            cacheRatio,
-            createCacheRatio,
-            completionRatio,
-            imageRatio,
-            audioRatio,
-            audioCompletionRatio,
+            ModelPrice: modelPrice,
+            ModelRatio: modelRatio,
+            CacheRatio: cacheRatio,
+            CreateCacheRatio: createCacheRatio,
+            CompletionRatio: completionRatio,
+            ImageRatio: imageRatio,
+            AudioRatio: audioRatio,
+            AudioCompletionRatio: audioCompletionRatio,
           }}
         />
 
@@ -860,14 +860,14 @@ export const ModelRatioVisualEditor = memo(
           onOpenChange={setFillDialogOpen}
           onSave={handleFillUnpricedConfirm}
           currentRatios={{
-            modelPrice,
-            modelRatio,
-            cacheRatio,
-            createCacheRatio,
-            completionRatio,
-            imageRatio,
-            audioRatio,
-            audioCompletionRatio,
+            ModelPrice: modelPrice,
+            ModelRatio: modelRatio,
+            CacheRatio: cacheRatio,
+            CreateCacheRatio: createCacheRatio,
+            CompletionRatio: completionRatio,
+            ImageRatio: imageRatio,
+            AudioRatio: audioRatio,
+            AudioCompletionRatio: audioCompletionRatio,
           }}
         />
       </div>

@@ -18,11 +18,16 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { PricingData } from '@/features/pricing/types'
 
-function parseJsonMap(json: string): Record<string, string> {
+function parseJsonMap(json: string): Record<string, number> {
   try {
     const parsed = JSON.parse(json)
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return parsed as Record<string, string>
+      const result: Record<string, number> = {}
+      for (const [k, v] of Object.entries(parsed)) {
+        const n = Number(v)
+        if (Number.isFinite(n)) result[k] = n
+      }
+      return result
     }
   } catch {}
   return {}
@@ -31,16 +36,7 @@ function parseJsonMap(json: string): Record<string, string> {
 type FillUnpricedDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  currentRatios: {
-    modelPrice: string
-    modelRatio: string
-    cacheRatio: string
-    createCacheRatio: string
-    completionRatio: string
-    imageRatio: string
-    audioRatio: string
-    audioCompletionRatio: string
-  }
+  currentRatios: Record<string, string>
   onSave: (updates: Record<string, string>) => void
 }
 
@@ -68,11 +64,11 @@ export function FillUnpricedDialog({
 
   const unpricedModels = useMemo(() => {
     if (!pricingData?.data) return []
-    const modelPrice = parseJsonMap(currentRatios.modelPrice)
-    const modelRatio = parseJsonMap(currentRatios.modelRatio)
-    const completionRatio = parseJsonMap(currentRatios.completionRatio)
-    const cacheRatio = parseJsonMap(currentRatios.cacheRatio)
-    const createCacheRatio = parseJsonMap(currentRatios.createCacheRatio)
+    const modelPrice = parseJsonMap(currentRatios.ModelPrice || '{}')
+    const modelRatio = parseJsonMap(currentRatios.ModelRatio || '{}')
+    const completionRatio = parseJsonMap(currentRatios.CompletionRatio || '{}')
+    const cacheRatio = parseJsonMap(currentRatios.CacheRatio || '{}')
+    const createCacheRatio = parseJsonMap(currentRatios.CreateCacheRatio || '{}')
 
     return pricingData.data
       .filter((m) => {
@@ -127,14 +123,17 @@ export function FillUnpricedDialog({
 
   const handleConfirm = () => {
     if (selectedModels.size === 0) return
-    const modelRatio = parseJsonMap(currentRatios.modelRatio)
-    const completionRatio = parseJsonMap(currentRatios.completionRatio)
-    const cacheRatio = parseJsonMap(currentRatios.cacheRatio)
+    const ratioNum = parseFloat(defaultRatio)
+    const completionNum = parseFloat(defaultCompletion)
+    const cacheNum = parseFloat(defaultCache)
+    const modelRatio = parseJsonMap(currentRatios.ModelRatio || '{}')
+    const completionRatio = parseJsonMap(currentRatios.CompletionRatio || '{}')
+    const cacheRatio = parseJsonMap(currentRatios.CacheRatio || '{}')
 
     for (const name of selectedModels) {
-      if (defaultRatio) modelRatio[name] = defaultRatio
-      if (defaultCompletion) completionRatio[name] = defaultCompletion
-      if (defaultCache) cacheRatio[name] = defaultCache
+      if (!isNaN(ratioNum)) modelRatio[name] = ratioNum
+      if (!isNaN(completionNum)) completionRatio[name] = completionNum
+      if (!isNaN(cacheNum)) cacheRatio[name] = cacheNum
     }
 
     onSave({

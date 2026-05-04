@@ -20,16 +20,7 @@ type BatchPricingDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   selectedModels: string[]
-  currentRatios: {
-    modelPrice: string
-    modelRatio: string
-    cacheRatio: string
-    createCacheRatio: string
-    completionRatio: string
-    imageRatio: string
-    audioRatio: string
-    audioCompletionRatio: string
-  }
+  currentRatios: Record<string, string>
   onSave: (updates: Record<string, string>) => void
 }
 
@@ -40,11 +31,11 @@ type RatioField = {
 }
 
   const RATIO_FIELDS: RatioField[] = [
-    { key: 'model_price', optionKey: 'modelPrice', label: 'Model Price' },
-    { key: 'model_ratio', optionKey: 'modelRatio', label: 'Model Ratio' },
-    { key: 'completion_ratio', optionKey: 'completionRatio', label: 'Completion Ratio' },
-    { key: 'cache_ratio', optionKey: 'cacheRatio', label: 'Cache Ratio' },
-    { key: 'create_cache_ratio', optionKey: 'createCacheRatio', label: 'Create Cache Ratio' },
+    { key: 'model_price', optionKey: 'ModelPrice', label: 'Model Price' },
+    { key: 'model_ratio', optionKey: 'ModelRatio', label: 'Model Ratio' },
+    { key: 'completion_ratio', optionKey: 'CompletionRatio', label: 'Completion Ratio' },
+    { key: 'cache_ratio', optionKey: 'CacheRatio', label: 'Cache Ratio' },
+    { key: 'create_cache_ratio', optionKey: 'CreateCacheRatio', label: 'Create Cache Ratio' },
   ]
 
 export function BatchPricingDialog({
@@ -79,18 +70,27 @@ export function BatchPricingDialog({
     for (const field of RATIO_FIELDS) {
       if (!enabledFields[field.key]) continue
       const raw = currentRatios[field.optionKey as keyof typeof currentRatios] || '{}'
-      let parsed: Record<string, string> = {}
+      let parsed: Record<string, number> = {}
       try {
-        parsed = JSON.parse(raw)
+        const obj = JSON.parse(raw)
+        if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+          for (const [k, v] of Object.entries(obj)) {
+            const n = Number(v)
+            if (Number.isFinite(n)) parsed[k] = n
+          }
+        }
       } catch {
         parsed = {}
       }
       const val = values[field.key]
+      const numVal = parseFloat(val)
       for (const model of selectedModels) {
         if (val === '' || val === undefined) {
           delete parsed[model]
+        } else if (field.key === 'model_price') {
+          parsed[model] = isNaN(numVal) ? 0 : numVal
         } else {
-          parsed[model] = val
+          parsed[model] = isNaN(numVal) ? 1 : numVal
         }
       }
       updates[field.optionKey] = JSON.stringify(parsed)
