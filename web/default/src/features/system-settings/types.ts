@@ -38,6 +38,7 @@ export type GeneralSettings = {
   ServerAddress: string
   'legal.user_agreement': string
   'legal.privacy_policy': string
+  ModelSquareNotice: string
   QuotaForNewUser: number
   PreConsumedQuota: number
   QuotaForInviter: number

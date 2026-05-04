@@ -47,6 +47,7 @@ const OtherSetting = () => {
     Logo: '',
     Footer: '',
     About: '',
+    ModelSquareNotice: '',
     HomePageContent: '',
   });
   let [loading, setLoading] = useState(false);
@@ -103,6 +104,20 @@ const OtherSetting = () => {
     } finally {
       setLoadingInput((loadingInput) => ({ ...loadingInput, Notice: false }));
     }
+  };
+  const submitModelSquareNotice = async () => {
+    setLoading(true);
+    const res = await API.put('/api/option/', {
+      key: 'ModelSquareNotice',
+      value: inputs.ModelSquareNotice,
+    });
+    const { success, message } = res.data;
+    if (success) {
+      showSuccess(t('模型广场提示设置成功'));
+    } else {
+      showError(message);
+    }
+    setLoading(false);
   };
   // 通用设置 - UserAgreement
   const submitUserAgreement = async () => {
@@ -420,6 +435,19 @@ const OtherSetting = () => {
               />
               <Button onClick={submitNotice} loading={loadingInput['Notice']}>
                 {t('设置公告')}
+              </Button>
+              <Form.TextArea
+                label={t('模型广场提示')}
+                placeholder={t(
+                  '在此输入模型广场提示信息，留空则不显示',
+                )}
+                field={'ModelSquareNotice'}
+                onChange={handleInputChange}
+                style={{ fontFamily: 'JetBrains Mono, Consolas' }}
+                autosize={{ minRows: 2, maxRows: 6 }}
+              />
+              <Button onClick={submitModelSquareNotice} loading={loadingInput['ModelSquareNotice']}>
+                {t('设置模型广场提示')}
               </Button>
               <Form.TextArea
                 label={t('用户协议')}

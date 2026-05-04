@@ -11,7 +11,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, Layers, WandSparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +34,8 @@ import {
 } from '@/features/pricing/lib/billing-expr'
 import { safeJsonParse } from '../utils/json-parser'
 import { ModelRatioDialog, type ModelRatioData } from './model-ratio-dialog'
+import { BatchPricingDialog } from './batch-pricing-dialog'
+import { FillUnpricedDialog } from './fill-unpriced-dialog'
 
 type ModelRatioVisualEditorProps = {
   modelPrice: string
@@ -89,6 +91,9 @@ export const ModelRatioVisualEditor = memo(
     const { t } = useTranslation()
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editData, setEditData] = useState<ModelRatioData | null>(null)
+    const [batchDialogOpen, setBatchDialogOpen] = useState(false)
+    const [fillDialogOpen, setFillDialogOpen] = useState(false)
+    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
     const [sorting, setSorting] = useState<SortingState>([])
     const [pagination, setPagination] = useState<PaginationState>({
       pageIndex: 0,
@@ -382,6 +387,30 @@ export const ModelRatioVisualEditor = memo(
       ]
     )
 
+    const selectedModelNames = useMemo(() => {
+      return models
+        .filter((_, index) => rowSelection[index])
+        .map((m) => m.name)
+    }, [models, rowSelection])
+
+    const handleBatchPricingConfirm = useCallback(
+      (updates: Record<string, string>) => {
+        for (const [key, value] of Object.entries(updates)) {
+          onChange(key, value)
+        }
+      },
+      [onChange]
+    )
+
+    const handleFillUnpricedConfirm = useCallback(
+      (updates: Record<string, string>) => {
+        for (const [key, value] of Object.entries(updates)) {
+          onChange(key, value)
+        }
+      },
+      [onChange]
+    )
+
     const columns = useMemo<ColumnDef<ModelRow>[]>(() => {
       // Ratio fields are not the primary pricing when a per-request fixed
       // price is set, or when the model is in tiered_expr mode (the
@@ -392,6 +421,30 @@ export const ModelRatioVisualEditor = memo(
         isFallbackRow(row) ? 'text-muted-foreground' : ''
 
       return [
+        {
+          id: 'select',
+          header: ({ table }) => (
+            <input
+              type='checkbox'
+              className='h-4 w-4 rounded border-gray-300'
+              checked={table.getIsAllPageRowsSelected()}
+              onChange={(e) =>
+                table.toggleAllPageRowsSelected(e.target.checked)
+              }
+            />
+          ),
+          cell: ({ row }) => (
+            <input
+              type='checkbox'
+              className='h-4 w-4 rounded border-gray-300'
+              checked={row.getIsSelected()}
+              onChange={(e) => row.toggleSelected(e.target.checked)}
+            />
+          ),
+          enableSorting: false,
+          enableHiding: false,
+          size: 40,
+        },
         {
           accessorKey: 'name',
           header: ({ column }) => (
@@ -552,10 +605,12 @@ export const ModelRatioVisualEditor = memo(
         sorting,
         columnVisibility,
         pagination,
+        rowSelection,
       },
       onSortingChange: setSorting,
       onColumnVisibilityChange: setColumnVisibility,
       onPaginationChange: setPagination,
+      onRowSelectionChange: setRowSelection,
       autoResetPageIndex: false,
       getCoreRowModel: getCoreRowModel(),
       getFilteredRowModel: getFilteredRowModel(),
@@ -705,10 +760,28 @@ export const ModelRatioVisualEditor = memo(
             table={table}
             searchPlaceholder={t('Search models...')}
           />
-          <Button onClick={handleAdd}>
-            <Plus className='mr-2 h-4 w-4' />
-            {t('Add model')}
-          </Button>
+          <div className='flex items-center gap-2'>
+            {selectedModelNames.length > 0 && (
+              <Button
+                variant='outline'
+                onClick={() => setBatchDialogOpen(true)}
+              >
+                <Layers className='mr-2 h-4 w-4' />
+                {t('Batch pricing')} ({selectedModelNames.length})
+              </Button>
+            )}
+            <Button
+              variant='outline'
+              onClick={() => setFillDialogOpen(true)}
+            >
+              <WandSparkles className='mr-2 h-4 w-4' />
+              {t('Fill unpriced')}
+            </Button>
+            <Button onClick={handleAdd}>
+              <Plus className='mr-2 h-4 w-4' />
+              {t('Add model')}
+            </Button>
+          </div>
         </div>
 
         {table.getRowModel().rows.length === 0 ? (
@@ -763,6 +836,39 @@ export const ModelRatioVisualEditor = memo(
           onOpenChange={setDialogOpen}
           onSave={handleSave}
           editData={editData}
+        />
+
+        <BatchPricingDialog
+          open={batchDialogOpen}
+          onOpenChange={setBatchDialogOpen}
+          onSave={handleBatchPricingConfirm}
+          selectedModels={selectedModelNames}
+          currentRatios={{
+            modelPrice,
+            modelRatio,
+            cacheRatio,
+            createCacheRatio,
+            completionRatio,
+            imageRatio,
+            audioRatio,
+            audioCompletionRatio,
+          }}
+        />
+
+        <FillUnpricedDialog
+          open={fillDialogOpen}
+          onOpenChange={setFillDialogOpen}
+          onSave={handleFillUnpricedConfirm}
+          currentRatios={{
+            modelPrice,
+            modelRatio,
+            cacheRatio,
+            createCacheRatio,
+            completionRatio,
+            imageRatio,
+            audioRatio,
+            audioCompletionRatio,
+          }}
         />
       </div>
     )

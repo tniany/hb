@@ -178,6 +178,15 @@ func GetNotice(c *gin.Context) {
 	return
 }
 
+func GetModelSquareNotice(c *gin.Context) {
+	notice := common.OptionMap["ModelSquareNotice"]
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    notice,
+	})
+}
+
 func GetAbout(c *gin.Context) {
 	common.OptionMapRWMutex.RLock()
 	defer common.OptionMapRWMutex.RUnlock()

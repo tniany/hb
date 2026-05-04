@@ -17,6 +17,7 @@ import {
 import { EXCLUDED_GROUPS, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
+import { useModelSquareNotice } from './hooks/use-model-square-notice'
 
 export function Pricing() {
   const { t } = useTranslation()
@@ -33,6 +34,8 @@ export function Pricing() {
     priceRate,
     usdExchangeRate,
   } = usePricingData()
+
+  const { notice: modelSquareNotice } = useModelSquareNotice()
 
   const {
     searchInput,
@@ -204,17 +207,17 @@ export function Pricing() {
             />
 
             <main className='min-w-0 space-y-4'>
-              <Alert
-                variant='default'
-                className='border-blue-500/50 bg-blue-50 dark:bg-blue-950/20'
-              >
-                <Info className='h-4 w-4 text-blue-600 dark:text-blue-400' />
-                <AlertDescription className='text-blue-800 dark:text-blue-300'>
-                  {t(
-                    'HanBing API reminds you: All models on this site are free to use. Check in daily to claim fish!'
-                  )}
-                </AlertDescription>
-              </Alert>
+              {modelSquareNotice && (
+                <Alert
+                  variant='default'
+                  className='border-blue-500/50 bg-blue-50 dark:bg-blue-950/20'
+                >
+                  <Info className='h-4 w-4 text-blue-600 dark:text-blue-400' />
+                  <AlertDescription className='text-blue-800 dark:text-blue-300'>
+                    {modelSquareNotice}
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <PricingToolbar
                 filteredCount={filteredModels.length}

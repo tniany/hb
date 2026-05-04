@@ -50,6 +50,12 @@ export type PricingData = {
   auto_groups: string[]
 }
 
+export interface ApiResponse<T = unknown> {
+  success: boolean
+  message?: string
+  data?: T
+}
+
 export type TokenUnit = 'M' | 'K'
 export type PriceType =
   | 'input'
