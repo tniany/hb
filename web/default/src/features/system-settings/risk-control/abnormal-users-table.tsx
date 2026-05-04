@@ -135,7 +135,6 @@ export function AbnormalUsersTable({
                       <TableHead>{t('Requests')}</TableHead>
                       <TableHead>{t('Quota')}</TableHead>
                       <TableHead>{t('Tokens')}</TableHead>
-                      <TableHead>{t('Errors')}</TableHead>
                       <TableHead>{t('Avg Time')}</TableHead>
                       <TableHead>{t('First Seen')}</TableHead>
                       <TableHead>{t('Last Seen')}</TableHead>
@@ -166,15 +165,6 @@ export function AbnormalUsersTable({
                         </TableCell>
                         <TableCell>
                           {user.total_tokens.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={
-                              user.error_count > 0 ? 'text-red-500' : ''
-                            }
-                          >
-                            {user.error_count}
-                          </span>
                         </TableCell>
                         <TableCell>{user.avg_use_time.toFixed(2)}s</TableCell>
                         <TableCell>

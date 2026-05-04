@@ -3830,6 +3830,12 @@
     "该用户将被禁用，无法访问系统。": "This user will be disabled and unable to access the system.",
     "用户已封禁": "User banned successfully",
     "IP 关联用户详情": "IP Users Detail",
-    "最近": "Last"
+    "最近": "Last",
+    "风控白名单": "Risk Control Whitelist",
+    "白名单中的用户不会出现在风控检测列表中": "Whitelisted users will not appear in risk control detection lists",
+    "输入用户ID": "Enter User ID",
+    "已从白名单移除": "Removed from whitelist",
+    "关联用户": "Associated Users",
+    "请输入有效的用户ID": "Please enter a valid user ID"
   }
 }

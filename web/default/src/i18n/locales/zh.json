@@ -3971,6 +3971,15 @@
     "Your Turnstile site key": "您的 Turnstile 站点密钥",
     "Zhipu": "智谱",
     "Zhipu V4": "智谱 V4",
-    "Zoom": "缩放"
+    "Zoom": "缩放",
+    "Add to Whitelist": "添加到白名单",
+    "Enter User ID": "输入用户 ID",
+    "Invalid user ID": "无效的用户 ID",
+    "No whitelist users": "暂无白名单用户",
+    "Remove from Whitelist": "从白名单移除",
+    "User added to whitelist": "用户已添加到白名单",
+    "User removed from whitelist": "用户已从白名单移除",
+    "Whitelist Management": "白名单管理",
+    "Whitelisted users will not appear in risk control detection lists": "白名单中的用户不会出现在风控检测列表中"
   }
 }

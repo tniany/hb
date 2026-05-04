@@ -178,6 +178,7 @@ func InitOptionMap() {
 	common.OptionMap["AutomaticDisableStatusCodes"] = operation_setting.AutomaticDisableStatusCodesToString()
 	common.OptionMap["AutomaticRetryStatusCodes"] = operation_setting.AutomaticRetryStatusCodesToString()
 	common.OptionMap["ExposeRatioEnabled"] = strconv.FormatBool(ratio_setting.IsExposeRatioEnabled())
+	common.OptionMap["RiskControlWhitelist"] = ""
 
 	// 自动添加所有注册的模型配置
 	modelConfigs := config.GlobalConfig.ExportAllConfigs()
@@ -548,6 +549,8 @@ func updateOptionMap(key string, value string) (err error) {
 		// WaffoPayMethods is read directly from OptionMap via setting.GetWaffoPayMethods().
 		// The value is already stored in OptionMap at the top of this function (line: common.OptionMap[key] = value).
 		// No additional in-memory variable to update.
+	case "RiskControlWhitelist":
+		common.RiskControlWhitelistUserIds = parseUserIds(value)
 	}
 	return err
 }
@@ -587,4 +590,24 @@ func handleConfigUpdate(key, value string) bool {
 	}
 
 	return true // 已处理
+}
+
+func parseUserIds(value string) []int {
+	if value == "" {
+		return nil
+	}
+	parts := strings.Split(value, ",")
+	ids := make([]int, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		id, err := strconv.Atoi(part)
+		if err != nil {
+			continue
+		}
+		ids = append(ids, id)
+	}
+	return ids
 }

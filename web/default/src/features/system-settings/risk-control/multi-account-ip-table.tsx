@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -38,6 +39,7 @@ export function MultiAccountIpTable({
   const [pageSize, setPageSize] = useState(10)
   const [minAccounts, setMinAccounts] = useState(2)
   const [selectedIp, setSelectedIp] = useState<string | null>(null)
+  const [expandedIp, setExpandedIp] = useState<string | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -106,43 +108,70 @@ export function MultiAccountIpTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('IP Address')}</TableHead>
-                    <TableHead>{t('Accounts')}</TableHead>
+                    <TableHead>{t('Users')}</TableHead>
                     <TableHead>{t('Requests')}</TableHead>
                     <TableHead>{t('Quota')}</TableHead>
                     <TableHead>{t('Last Seen')}</TableHead>
-                    <TableHead>{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.ip}>
-                      <TableCell className='font-mono'>{item.ip}</TableCell>
-                      <TableCell>
-                        <span className='font-semibold text-orange-500'>
-                          {item.user_count}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {item.request_count.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        {formatLogQuota(item.total_quota)}
-                      </TableCell>
-                      <TableCell>
-                        {formatTimestampToDate(item.last_seen)}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={() => setSelectedIp(item.ip)}
-                        >
-                          <Eye className='mr-1 h-4 w-4' />
-                          {t('View Users')}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {items.map((item) => {
+                    const names = (item.user_names || '')
+                      .split(',')
+                      .filter(Boolean)
+                    const isExpanded = expandedIp === item.ip
+                    return (
+                      <TableRow key={item.ip}>
+                        <TableCell className='font-mono'>{item.ip}</TableCell>
+                        <TableCell>
+                          <div className='flex flex-wrap gap-1'>
+                            {names.map((name, idx) => {
+                              const isHidden = idx >= 3 && !isExpanded
+                              return (
+                                <Badge
+                                  key={name}
+                                  variant={
+                                    isHidden ? 'outline' : 'secondary'
+                                  }
+                                  className={`cursor-pointer text-xs ${isHidden ? 'opacity-40' : ''}`}
+                                  onClick={() => setSelectedIp(item.ip)}
+                                >
+                                  {name}
+                                </Badge>
+                              )
+                            })}
+                            {names.length > 3 && !isExpanded && (
+                              <Badge
+                                variant='outline'
+                                className='cursor-pointer text-xs text-muted-foreground'
+                                onClick={() => setExpandedIp(item.ip)}
+                              >
+                                +{names.length - 3} more
+                              </Badge>
+                            )}
+                            {isExpanded && (
+                              <Badge
+                                variant='outline'
+                                className='cursor-pointer text-xs text-muted-foreground'
+                                onClick={() => setExpandedIp(null)}
+                              >
+                                Collapse
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {item.request_count.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {formatLogQuota(item.total_quota)}
+                        </TableCell>
+                        <TableCell>
+                          {formatTimestampToDate(item.last_seen)}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
 

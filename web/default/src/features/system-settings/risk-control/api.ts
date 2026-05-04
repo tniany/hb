@@ -76,3 +76,26 @@ export async function banUser(userId: number): Promise<void> {
     params: { user_id: userId },
   })
 }
+
+export async function getRiskControlWhitelist(): Promise<
+  { user_id: number; username: string }[]
+> {
+  const res = await api.get('/api/risk_control/whitelist')
+  return res.data.data
+}
+
+export async function addRiskControlWhitelistUser(
+  userId: number
+): Promise<void> {
+  await api.post('/api/risk_control/whitelist/add', null, {
+    params: { user_id: userId },
+  })
+}
+
+export async function removeRiskControlWhitelistUser(
+  userId: number
+): Promise<void> {
+  await api.post('/api/risk_control/whitelist/remove', null, {
+    params: { user_id: userId },
+  })
+}

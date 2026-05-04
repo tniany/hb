@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { OverviewCard } from './overview-card'
 import { MultiAccountIpTable } from './multi-account-ip-table'
 import { AbnormalUsersTable } from './abnormal-users-table'
+import { WhitelistManager } from './whitelist-manager'
 
 const getDateDaysAgo = (days: number) => {
   const date = new Date()
@@ -91,6 +92,9 @@ export function RiskControlPage() {
               <TabsTrigger value='abnormal'>
                 {t('Abnormal Users')}
               </TabsTrigger>
+              <TabsTrigger value='whitelist'>
+                {t('Whitelist')}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value='overview'>
               <OverviewCard
@@ -109,6 +113,9 @@ export function RiskControlPage() {
                 startTimestamp={startTimestamp}
                 endTimestamp={endTimestamp}
               />
+            </TabsContent>
+            <TabsContent value='whitelist'>
+              <WhitelistManager />
             </TabsContent>
           </Tabs>
         </div>

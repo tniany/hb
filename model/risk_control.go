@@ -2,41 +2,105 @@ package model
 
 import (
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
 )
 
 type IpAccountStat struct {
-	Ip          string `json:"ip"`
-	UserCount   int    `json:"user_count"`
-	UserIdStr   string `json:"-" gorm:"column:user_ids"`
-	RequestCount int   `json:"request_count"`
-	TotalQuota  int    `json:"total_quota"`
-	LastSeen    int64  `json:"last_seen"`
+	Ip           string `json:"ip"`
+	UserCount    int    `json:"user_count"`
+	UserIdStr    string `json:"-" gorm:"column:user_ids"`
+	UserNames    string `json:"user_names" gorm:"column:user_names"`
+	RequestCount int    `json:"request_count"`
+	TotalQuota   int    `json:"total_quota"`
+	LastSeen     int64  `json:"last_seen"`
 }
 
 type AbnormalUserStat struct {
-	UserId        int     `json:"user_id"`
-	Username      string  `json:"username"`
-	IpCount       int     `json:"ip_count"`
-	RequestCount  int     `json:"request_count"`
-	TotalQuota    int     `json:"total_quota"`
-	TotalTokens   int     `json:"total_tokens"`
-	AvgUseTime    float64 `json:"avg_use_time"`
-	ErrorCount    int     `json:"error_count"`
-	FirstSeen     int64   `json:"first_seen"`
-	LastSeen      int64   `json:"last_seen"`
+	UserId       int     `json:"user_id"`
+	Username     string  `json:"username"`
+	IpCount      int     `json:"ip_count"`
+	RequestCount int     `json:"request_count"`
+	TotalQuota   int     `json:"total_quota"`
+	TotalTokens  int     `json:"total_tokens"`
+	AvgUseTime   float64 `json:"avg_use_time"`
+	FirstSeen    int64   `json:"first_seen"`
+	LastSeen     int64   `json:"last_seen"`
 }
 
 type RiskControlStats struct {
-	TotalUsers          int `json:"total_users"`
-	ActiveUsers         int `json:"active_users"`
-	MultiIpUsers        int `json:"multi_ip_users"`
-	HighQuotaUsers      int `json:"high_quota_users"`
-	SuspiciousIps       int `json:"suspicious_ips"`
-	TotalRequests       int `json:"total_requests"`
-	ErrorRequests       int `json:"error_requests"`
+	TotalUsers     int `json:"total_users"`
+	ActiveUsers    int `json:"active_users"`
+	MultiIpUsers   int `json:"multi_ip_users"`
+	HighQuotaUsers int `json:"high_quota_users"`
+	SuspiciousIps  int `json:"suspicious_ips"`
+	TotalRequests  int `json:"total_requests"`
+}
+
+func GetRiskControlWhitelistUserIds() []int {
+	return common.RiskControlWhitelistUserIds
+}
+
+func GetRiskControlWhitelistUsers() ([]map[string]interface{}, error) {
+	userIds := GetRiskControlWhitelistUserIds()
+	if len(userIds) == 0 {
+		return []map[string]interface{}{}, nil
+	}
+	var users []User
+	if err := DB.Where("id IN ?", userIds).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	result := make([]map[string]interface{}, 0, len(users))
+	for _, u := range users {
+		result = append(result, map[string]interface{}{
+			"user_id":  u.Id,
+			"username": u.Username,
+		})
+	}
+	return result, nil
+}
+
+func AddRiskControlWhitelistUser(userId int) error {
+	if userId <= 0 {
+		return errors.New("invalid user id")
+	}
+	userIds := GetRiskControlWhitelistUserIds()
+	for _, id := range userIds {
+		if id == userId {
+			return errors.New("user already in whitelist")
+		}
+	}
+	userIds = append(userIds, userId)
+	return updateRiskControlWhitelist(userIds)
+}
+
+func RemoveRiskControlWhitelistUser(userId int) error {
+	userIds := GetRiskControlWhitelistUserIds()
+	newUserIds := make([]int, 0, len(userIds))
+	found := false
+	for _, id := range userIds {
+		if id == userId {
+			found = true
+			continue
+		}
+		newUserIds = append(newUserIds, id)
+	}
+	if !found {
+		return errors.New("user not in whitelist")
+	}
+	return updateRiskControlWhitelist(newUserIds)
+}
+
+func updateRiskControlWhitelist(userIds []int) error {
+	strIds := make([]string, len(userIds))
+	for i, id := range userIds {
+		strIds[i] = strconv.Itoa(id)
+	}
+	value := strings.Join(strIds, ",")
+	return UpdateOption("RiskControlWhitelist", value)
 }
 
 func GetMultiAccountIps(startTimestamp int64, endTimestamp int64, minAccounts int, startIdx int, pageSize int) ([]IpAccountStat, int64, error) {
@@ -54,6 +118,8 @@ func GetMultiAccountIps(startTimestamp int64, endTimestamp int64, minAccounts in
 	var total int64
 	var results []IpAccountStat
 
+	whitelistIds := GetRiskControlWhitelistUserIds()
+
 	countQuery := LOG_DB.Table("logs").
 		Select("ip").
 		Where("type = ?", LogTypeConsume).
@@ -61,6 +127,10 @@ func GetMultiAccountIps(startTimestamp int64, endTimestamp int64, minAccounts in
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
 		Group("ip").
 		Having("COUNT(DISTINCT user_id) >= ?", minAccounts)
+
+	if len(whitelistIds) > 0 {
+		countQuery = countQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
 
 	if err := countQuery.Count(&total).Error; err != nil {
 		return nil, 0, errors.New("failed to count multi-account IPs")
@@ -76,8 +146,50 @@ func GetMultiAccountIps(startTimestamp int64, endTimestamp int64, minAccounts in
 		Order("user_count DESC, request_count DESC").
 		Offset(startIdx).Limit(pageSize)
 
+	if len(whitelistIds) > 0 {
+		dataQuery = dataQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
+
 	if err := dataQuery.Find(&results).Error; err != nil {
 		return nil, 0, errors.New("failed to query multi-account IPs")
+	}
+
+	if len(results) > 0 {
+		ips := make([]string, len(results))
+		for i, r := range results {
+			ips[i] = r.Ip
+		}
+
+		type ipUser struct {
+			Ip       string `gorm:"column:ip"`
+			Username string `gorm:"column:username"`
+		}
+		var ipUsers []ipUser
+
+		userQuery := LOG_DB.Table("logs").
+			Select("ip, username").
+			Where("type = ?", LogTypeConsume).
+			Where("ip IN ?", ips).
+			Where("ip != ''").
+			Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
+			Where("username != ''").
+			Group("ip, username")
+
+		if len(whitelistIds) > 0 {
+			userQuery = userQuery.Where("user_id NOT IN ?", whitelistIds)
+		}
+
+		if err := userQuery.Find(&ipUsers).Error; err == nil {
+			ipUserMap := make(map[string][]string)
+			for _, iu := range ipUsers {
+				ipUserMap[iu.Ip] = append(ipUserMap[iu.Ip], iu.Username)
+			}
+			for i := range results {
+				if names, ok := ipUserMap[results[i].Ip]; ok {
+					results[i].UserNames = strings.Join(names, ",")
+				}
+			}
+		}
 	}
 
 	return results, total, nil
@@ -100,30 +212,13 @@ func GetIpUsers(ip string, startTimestamp int64, endTimestamp int64) ([]Abnormal
 		Group("user_id, username").
 		Order("request_count DESC")
 
+	whitelistIds := GetRiskControlWhitelistUserIds()
+	if len(whitelistIds) > 0 {
+		query = query.Where("user_id NOT IN ?", whitelistIds)
+	}
+
 	if err := query.Find(&results).Error; err != nil {
 		return nil, errors.New("failed to query IP users")
-	}
-
-	errorQuery := LOG_DB.Table("logs").
-		Select("user_id, COUNT(*) as cnt").
-		Where("type = ?", LogTypeError).
-		Where("ip = ?", ip).
-		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
-		Group("user_id")
-
-	type errorStat struct {
-		UserId int `gorm:"column:user_id"`
-		Cnt    int `gorm:"column:cnt"`
-	}
-	var errorStats []errorStat
-	if err := errorQuery.Find(&errorStats).Error; err == nil {
-		errorMap := make(map[int]int)
-		for _, es := range errorStats {
-			errorMap[es.UserId] = es.Cnt
-		}
-		for i := range results {
-			results[i].ErrorCount = errorMap[results[i].UserId]
-		}
 	}
 
 	return results, nil
@@ -144,12 +239,18 @@ func GetAbnormalUsers(startTimestamp int64, endTimestamp int64, threshold int, s
 	var total int64
 	var results []AbnormalUserStat
 
+	whitelistIds := GetRiskControlWhitelistUserIds()
+
 	countQuery := LOG_DB.Table("logs").
 		Select("user_id").
 		Where("type = ?", LogTypeConsume).
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
 		Group("user_id").
 		Having("COUNT(*) >= ?", threshold)
+
+	if len(whitelistIds) > 0 {
+		countQuery = countQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
 
 	if err := countQuery.Count(&total).Error; err != nil {
 		return nil, 0, errors.New("failed to count abnormal users")
@@ -164,37 +265,12 @@ func GetAbnormalUsers(startTimestamp int64, endTimestamp int64, threshold int, s
 		Order("request_count DESC").
 		Offset(startIdx).Limit(pageSize)
 
+	if len(whitelistIds) > 0 {
+		dataQuery = dataQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
+
 	if err := dataQuery.Find(&results).Error; err != nil {
 		return nil, 0, errors.New("failed to query abnormal users")
-	}
-
-	userIds := make([]int, 0, len(results))
-	for _, r := range results {
-		userIds = append(userIds, r.UserId)
-	}
-
-	if len(userIds) > 0 {
-		type errorStat struct {
-			UserId int `gorm:"column:user_id"`
-			Cnt    int `gorm:"column:cnt"`
-		}
-		var errorStats []errorStat
-		errorQuery := LOG_DB.Table("logs").
-			Select("user_id, COUNT(*) as cnt").
-			Where("type = ?", LogTypeError).
-			Where("user_id IN ?", userIds).
-			Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
-			Group("user_id")
-
-		if err := errorQuery.Find(&errorStats).Error; err == nil {
-			errorMap := make(map[int]int)
-			for _, es := range errorStats {
-				errorMap[es.UserId] = es.Cnt
-			}
-			for i := range results {
-				results[i].ErrorCount = errorMap[results[i].UserId]
-			}
-		}
 	}
 
 	return results, total, nil
@@ -210,16 +286,21 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 
 	stats := &RiskControlStats{}
 
+	whitelistIds := GetRiskControlWhitelistUserIds()
+
 	var totalUserCount int64
 	DB.Model(&User{}).Count(&totalUserCount)
 	stats.TotalUsers = int(totalUserCount)
 
 	var activeUserCount int64
-	LOG_DB.Model(&Log{}).
+	activeQuery := LOG_DB.Model(&Log{}).
 		Where("type = ?", LogTypeConsume).
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
-		Distinct("user_id").
-		Count(&activeUserCount)
+		Distinct("user_id")
+	if len(whitelistIds) > 0 {
+		activeQuery = activeQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
+	activeQuery.Count(&activeUserCount)
 	stats.ActiveUsers = int(activeUserCount)
 
 	var multiIpCount int64
@@ -230,6 +311,9 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
 		Group("user_id").
 		Having("COUNT(DISTINCT ip) >= 3")
+	if len(whitelistIds) > 0 {
+		multiIpQuery = multiIpQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
 	if err := multiIpQuery.Count(&multiIpCount).Error; err != nil {
 		common.SysError("failed to count multi-ip users: " + err.Error())
 	}
@@ -242,6 +326,9 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
 		Group("user_id").
 		Having("SUM(quota) >= ?", 1000000)
+	if len(whitelistIds) > 0 {
+		highQuotaQuery = highQuotaQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
 	if err := highQuotaQuery.Count(&highQuotaCount).Error; err != nil {
 		common.SysError("failed to count high quota users: " + err.Error())
 	}
@@ -255,6 +342,9 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
 		Group("ip").
 		Having("COUNT(DISTINCT user_id) >= 3")
+	if len(whitelistIds) > 0 {
+		suspiciousIpQuery = suspiciousIpQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
 	if err := suspiciousIpQuery.Count(&suspiciousIpCount).Error; err != nil {
 		common.SysError("failed to count suspicious ips: " + err.Error())
 	}
@@ -266,13 +356,6 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
 		Count(&totalRequestCount)
 	stats.TotalRequests = int(totalRequestCount)
-
-	var errorRequestCount int64
-	LOG_DB.Model(&Log{}).
-		Where("type = ?", LogTypeError).
-		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
-		Count(&errorRequestCount)
-	stats.ErrorRequests = int(errorRequestCount)
 
 	return stats, nil
 }

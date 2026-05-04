@@ -22,6 +22,7 @@ import {
   Button,
   Card,
   Col,
+  Input,
   Modal,
   Row,
   Select,
@@ -71,6 +72,10 @@ export default function SettingsRiskControl() {
   const [selectedIp, setSelectedIp] = useState('');
 
   const [rangeDays, setRangeDays] = useState(7);
+
+  const [whitelist, setWhitelist] = useState([]);
+  const [whitelistLoading, setWhitelistLoading] = useState(false);
+  const [addUserId, setAddUserId] = useState('');
 
   const getTimestamps = useCallback(() => {
     const endTimestamp = dayjs().unix();
@@ -197,6 +202,58 @@ export default function SettingsRiskControl() {
     });
   };
 
+  const fetchWhitelist = useCallback(async () => {
+    setWhitelistLoading(true);
+    try {
+      const res = await API.get('/api/risk_control/whitelist');
+      if (res.data.success) {
+        setWhitelist(res.data.data || []);
+      }
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      setWhitelistLoading(false);
+    }
+  }, []);
+
+  const addWhitelistUser = async () => {
+    const userId = parseInt(addUserId);
+    if (!userId || userId <= 0) {
+      showError(t('请输入有效的用户ID'));
+      return;
+    }
+    try {
+      const res = await API.post('/api/risk_control/whitelist/add', null, {
+        params: { user_id: userId },
+      });
+      if (res.data.success) {
+        showSuccess(t('已添加到白名单'));
+        setAddUserId('');
+        fetchWhitelist();
+      } else {
+        showError(res.data.message);
+      }
+    } catch (e) {
+      showError(e.message);
+    }
+  };
+
+  const removeWhitelistUser = async (userId) => {
+    try {
+      const res = await API.post('/api/risk_control/whitelist/remove', null, {
+        params: { user_id: userId },
+      });
+      if (res.data.success) {
+        showSuccess(t('已从白名单移除'));
+        fetchWhitelist();
+      } else {
+        showError(res.data.message);
+      }
+    } catch (e) {
+      showError(e.message);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
@@ -209,6 +266,10 @@ export default function SettingsRiskControl() {
     fetchAbnormalUsers();
   }, [fetchAbnormalUsers]);
 
+  useEffect(() => {
+    fetchWhitelist();
+  }, [fetchWhitelist]);
+
   const multiAccountColumns = [
     {
       title: t('IP 地址'),
@@ -217,13 +278,24 @@ export default function SettingsRiskControl() {
       render: (text) => <Text copyable style={{ fontFamily: 'monospace' }}>{text}</Text>,
     },
     {
-      title: t('关联账号数'),
-      dataIndex: 'user_count',
-      key: 'user_count',
-      sorter: (a, b) => a.user_count - b.user_count,
-      render: (count) => (
-        <Tag color={count >= 5 ? 'red' : count >= 3 ? 'orange' : 'blue'}>{count}</Tag>
-      ),
+      title: t('关联用户'),
+      dataIndex: 'user_names',
+      key: 'user_names',
+      render: (userNames) => {
+        const names = (userNames || '').split(',').filter(Boolean);
+        const visible = names.slice(0, 3);
+        const hidden = names.length - 3;
+        return (
+          <Space wrap size={4}>
+            {visible.map(name => (
+              <Tag key={name} color='blue' size='small'>{name}</Tag>
+            ))}
+            {hidden > 0 && (
+              <Tag color='grey' size='small'>+{hidden}</Tag>
+            )}
+          </Space>
+        );
+      },
     },
     {
       title: t('请求数'),
@@ -296,14 +368,6 @@ export default function SettingsRiskControl() {
       render: (tokens) => tokens?.toLocaleString(),
     },
     {
-      title: t('错误数'),
-      dataIndex: 'error_count',
-      key: 'error_count',
-      render: (count) => (
-        <Text type={count > 0 ? 'danger' : 'secondary'}>{count}</Text>
-      ),
-    },
-    {
       title: t('平均耗时'),
       dataIndex: 'avg_use_time',
       key: 'avg_use_time',
@@ -342,15 +406,28 @@ export default function SettingsRiskControl() {
     { title: t('请求数'), dataIndex: 'request_count', key: 'request_count', render: (count) => count?.toLocaleString() },
     { title: t('消耗额度'), dataIndex: 'total_quota', key: 'total_quota', render: (quota) => renderQuota(quota) },
     { title: t('Token数'), dataIndex: 'total_tokens', key: 'total_tokens', render: (tokens) => tokens?.toLocaleString() },
-    { title: t('错误数'), dataIndex: 'error_count', key: 'error_count', render: (count) => <Text type={count > 0 ? 'danger' : 'secondary'}>{count}</Text> },
     { title: t('首次活动'), dataIndex: 'first_seen', key: 'first_seen', render: (ts) => timestamp2string(ts) },
     { title: t('最后活动'), dataIndex: 'last_seen', key: 'last_seen', render: (ts) => timestamp2string(ts) },
   ];
 
-  const renderStatCard = (label, value, color = '#1890ff') => (
+  const whitelistColumns = [
+    { title: t('用户ID'), dataIndex: 'user_id', key: 'user_id' },
+    { title: t('用户名'), dataIndex: 'username', key: 'username' },
+    {
+      title: t('操作'),
+      key: 'action',
+      render: (_, record) => (
+        <Button size='small' type='danger' onClick={() => removeWhitelistUser(record.user_id)}>
+          {t('移除')}
+        </Button>
+      ),
+    },
+  ];
+
+  const renderStatCard = (label, value) => (
     <Card style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 14, color: '#666', marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 'bold', color }}>{value ?? '-'}</div>
+      <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 'bold' }}>{value ?? '-'}</div>
     </Card>
   );
 
@@ -379,32 +456,23 @@ export default function SettingsRiskControl() {
           </p>
 
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col xs={12} sm={8} md={6} lg={3}>
+            <Col xs={12} sm={8} md={6} lg={4}>
               {renderStatCard(t('总用户数'), stats?.total_users)}
             </Col>
-            <Col xs={12} sm={8} md={6} lg={3}>
-              {renderStatCard(t('活跃用户'), stats?.active_users, '#52c41a')}
+            <Col xs={12} sm={8} md={6} lg={4}>
+              {renderStatCard(t('活跃用户'), stats?.active_users)}
             </Col>
-            <Col xs={12} sm={8} md={6} lg={3}>
+            <Col xs={12} sm={8} md={6} lg={4}>
               {renderStatCard(t('总请求数'), stats?.total_requests?.toLocaleString())}
             </Col>
-            <Col xs={12} sm={8} md={6} lg={3}>
-              {renderStatCard(
-                t('错误率'),
-                stats?.total_requests > 0
-                  ? ((stats.error_requests / stats.total_requests) * 100).toFixed(2) + '%'
-                  : '0%',
-                '#ff4d4f'
-              )}
+            <Col xs={12} sm={8} md={6} lg={4}>
+              {renderStatCard(t('可疑IP'), stats?.suspicious_ips)}
             </Col>
             <Col xs={12} sm={8} md={6} lg={4}>
-              {renderStatCard(t('可疑IP'), stats?.suspicious_ips, '#faad14')}
+              {renderStatCard(t('多IP用户'), stats?.multi_ip_users)}
             </Col>
             <Col xs={12} sm={8} md={6} lg={4}>
-              {renderStatCard(t('多IP用户'), stats?.multi_ip_users, '#faad14')}
-            </Col>
-            <Col xs={12} sm={8} md={6} lg={4}>
-              {renderStatCard(t('高额度用户'), stats?.high_quota_users, '#faad14')}
+              {renderStatCard(t('高额度用户'), stats?.high_quota_users)}
             </Col>
           </Row>
         </Card>
@@ -494,6 +562,37 @@ export default function SettingsRiskControl() {
               setAbnormalPageSize(pageSize);
             },
           }}
+        />
+      </Card>
+
+      <Card
+        title={t('风控白名单')}
+        style={{ marginTop: 16 }}
+        headerExtraContent={
+          <Space>
+            <Input
+              placeholder={t('输入用户ID')}
+              value={addUserId}
+              onChange={(v) => setAddUserId(v)}
+              style={{ width: 120 }}
+              onPressEnter={addWhitelistUser}
+            />
+            <Button size='small' type='primary' onClick={addWhitelistUser}>
+              {t('添加')}
+            </Button>
+          </Space>
+        }
+      >
+        <p style={{ color: '#666', marginBottom: 16 }}>
+          {t('白名单中的用户不会出现在风控检测列表中')}
+        </p>
+        <Table
+          loading={whitelistLoading}
+          columns={whitelistColumns}
+          dataSource={whitelist}
+          rowKey='user_id'
+          pagination={false}
+          size='small'
         />
       </Card>
 

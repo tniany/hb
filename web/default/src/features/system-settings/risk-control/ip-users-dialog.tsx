@@ -72,7 +72,6 @@ export function IpUsersDialog({
                   <TableHead>{t('Requests')}</TableHead>
                   <TableHead>{t('Quota')}</TableHead>
                   <TableHead>{t('Tokens')}</TableHead>
-                  <TableHead>{t('Errors')}</TableHead>
                   <TableHead>{t('First Seen')}</TableHead>
                   <TableHead>{t('Last Seen')}</TableHead>
                 </TableRow>
@@ -88,15 +87,6 @@ export function IpUsersDialog({
                     <TableCell>{formatLogQuota(user.total_quota)}</TableCell>
                     <TableCell>
                       {user.total_tokens.toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          user.error_count > 0 ? 'text-red-500' : ''
-                        }
-                      >
-                        {user.error_count}
-                      </span>
                     </TableCell>
                     <TableCell>
                       {formatTimestampToDate(user.first_seen)}

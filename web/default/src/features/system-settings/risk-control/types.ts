@@ -4,6 +4,7 @@ export type IpAccountStat = {
   request_count: number
   total_quota: number
   last_seen: number
+  user_names: string
 }
 
 export type AbnormalUserStat = {
@@ -14,7 +15,6 @@ export type AbnormalUserStat = {
   total_quota: number
   total_tokens: number
   avg_use_time: number
-  error_count: number
   first_seen: number
   last_seen: number
 }
@@ -26,7 +26,6 @@ export type RiskControlStats = {
   high_quota_users: number
   suspicious_ips: number
   total_requests: number
-  error_requests: number
 }
 
 export type PaginatedResponse<T> = {

@@ -107,3 +107,38 @@ func BannedUser(c *gin.Context) {
 
 	common.ApiSuccess(c, nil)
 }
+
+func GetRiskControlWhitelist(c *gin.Context) {
+	users, err := model.GetRiskControlWhitelistUsers()
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, users)
+}
+
+func AddRiskControlWhitelistUser(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Query("user_id"))
+	if err != nil || userId <= 0 {
+		common.ApiErrorMsg(c, "invalid user_id")
+		return
+	}
+	if err := model.AddRiskControlWhitelistUser(userId); err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	common.ApiSuccess(c, nil)
+}
+
+func RemoveRiskControlWhitelistUser(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Query("user_id"))
+	if err != nil || userId <= 0 {
+		common.ApiErrorMsg(c, "invalid user_id")
+		return
+	}
+	if err := model.RemoveRiskControlWhitelistUser(userId); err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	common.ApiSuccess(c, nil)
+}
