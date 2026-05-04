@@ -17,7 +17,16 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { PricingData } from '@/features/pricing/types'
-import { safeJsonParse } from '../utils/json-parser'
+
+function parseJsonMap(json: string): Record<string, string> {
+  try {
+    const parsed = JSON.parse(json)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, string>
+    }
+  } catch {}
+  return {}
+}
 
 type FillUnpricedDialogProps = {
   open: boolean
