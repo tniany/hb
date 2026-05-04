@@ -210,7 +210,9 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 
 	stats := &RiskControlStats{}
 
-	DB.Model(&User{}).Count((*int64)(&stats.TotalUsers))
+	var totalUserCount int64
+	DB.Model(&User{}).Count(&totalUserCount)
+	stats.TotalUsers = int(totalUserCount)
 
 	var activeUserCount int64
 	LOG_DB.Model(&Log{}).
@@ -258,15 +260,19 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 	}
 	stats.SuspiciousIps = int(suspiciousIpCount)
 
+	var totalRequestCount int64
 	LOG_DB.Model(&Log{}).
 		Where("type = ?", LogTypeConsume).
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
-		Count((*int64)(&stats.TotalRequests))
+		Count(&totalRequestCount)
+	stats.TotalRequests = int(totalRequestCount)
 
+	var errorRequestCount int64
 	LOG_DB.Model(&Log{}).
 		Where("type = ?", LogTypeError).
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
-		Count((*int64)(&stats.ErrorRequests))
+		Count(&errorRequestCount)
+	stats.ErrorRequests = int(errorRequestCount)
 
 	return stats, nil
 }
