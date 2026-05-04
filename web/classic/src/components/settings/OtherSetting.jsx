@@ -48,6 +48,7 @@ const OtherSetting = () => {
     Footer: '',
     About: '',
     ModelSquareNotice: '',
+    ApiKeyGroupTip: '',
     HomePageContent: '',
   });
   let [loading, setLoading] = useState(false);
@@ -114,6 +115,20 @@ const OtherSetting = () => {
     const { success, message } = res.data;
     if (success) {
       showSuccess(t('模型广场提示设置成功'));
+    } else {
+      showError(message);
+    }
+    setLoading(false);
+  };
+  const submitApiKeyGroupTip = async () => {
+    setLoading(true);
+    const res = await API.put('/api/option/', {
+      key: 'ApiKeyGroupTip',
+      value: inputs.ApiKeyGroupTip,
+    });
+    const { success, message } = res.data;
+    if (success) {
+      showSuccess(t('API 密钥分组提示设置成功'));
     } else {
       showError(message);
     }
@@ -448,6 +463,19 @@ const OtherSetting = () => {
               />
               <Button onClick={submitModelSquareNotice} loading={loadingInput['ModelSquareNotice']}>
                 {t('设置模型广场提示')}
+              </Button>
+              <Form.TextArea
+                label={t('API 密钥分组提示')}
+                placeholder={t(
+                  '创建API密钥时在分组选择器下方显示的提示信息',
+                )}
+                field={'ApiKeyGroupTip'}
+                onChange={handleInputChange}
+                style={{ fontFamily: 'JetBrains Mono, Consolas' }}
+                autosize={{ minRows: 1, maxRows: 3 }}
+              />
+              <Button onClick={submitApiKeyGroupTip} loading={loading}>
+                {t('设置 API 密钥分组提示')}
               </Button>
               <Form.TextArea
                 label={t('用户协议')}

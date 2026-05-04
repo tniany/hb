@@ -156,6 +156,7 @@ func InitOptionMap() {
 	common.OptionMap["TopUpLink"] = common.TopUpLink
 	//common.OptionMap["ChatLink"] = common.ChatLink
 	//common.OptionMap["ChatLink2"] = common.ChatLink2
+	common.OptionMap["ApiKeyGroupTip"] = ""
 	common.OptionMap["QuotaPerUnit"] = strconv.FormatFloat(common.QuotaPerUnit, 'f', -1, 64)
 	common.OptionMap["RetryTimes"] = strconv.Itoa(common.RetryTimes)
 	common.OptionMap["DataExportInterval"] = strconv.Itoa(common.DataExportInterval)

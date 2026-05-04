@@ -3007,7 +3007,9 @@
     "Abnormal Users Detection": "异常用户检测",
     "Suspicious IPs": "可疑IP数",
     "Multi-IP Users": "多IP用户",
-    "High Quota Users": "高额度用户",
+    "Burst Users": "短时高用量",
+    "Burst Users Detection": "短时高用量检测",
+    "Requests per Hour": "每小时请求数",
     "Total Users": "总用户数",
     "Active Users": "活跃用户",
     "Total Requests": "总请求数",
@@ -3980,6 +3982,8 @@
     "User added to whitelist": "用户已添加到白名单",
     "User removed from whitelist": "用户已从白名单移除",
     "Whitelist Management": "白名单管理",
-    "Whitelisted users will not appear in risk control detection lists": "白名单中的用户不会出现在风控检测列表中"
+    "Whitelisted users will not appear in risk control detection lists": "白名单中的用户不会出现在风控检测列表中",
+    "API Key Group Tip": "API 密钥分组提示",
+    "Warning message displayed below group selector in API key creation form": "在 API 密钥创建表单的分组选择器下方显示的警告信息"
   }
 }

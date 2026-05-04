@@ -47,6 +47,7 @@ export type GeneralSettings = {
   'general_setting.docs_link': string
   'quota_setting.enable_free_model_pre_consume': boolean
   QuotaPerUnit: number
+  ApiKeyGroupTip: string
   USDExchangeRate: number
   'general_setting.quota_display_type': string
   'general_setting.custom_currency_symbol': string

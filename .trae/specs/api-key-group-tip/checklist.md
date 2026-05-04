@@ -1,0 +1,6 @@
+- [x] 后端 InitOptionMap 中已初始化 ApiKeyGroupTip 选项
+- [x] API 密钥创建表单分组选择器下方显示 ApiKeyGroupTip 提示（非空时）
+- [x] 系统信息设置中可编辑 ApiKeyGroupTip 文本
+- [x] 经典主题同步以上变更
+- [x] i18n 翻译完整
+- [x] 代码零诊断错误

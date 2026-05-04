@@ -80,6 +80,27 @@ func GetAbnormalUsers(c *gin.Context) {
 	common.ApiSuccess(c, pageInfo)
 }
 
+func GetBurstUsers(c *gin.Context) {
+	pageInfo := common.GetPageQuery(c)
+	startTimestamp, _ := strconv.ParseInt(c.Query("start_timestamp"), 10, 64)
+	endTimestamp, _ := strconv.ParseInt(c.Query("end_timestamp"), 10, 64)
+	burstThreshold, _ := strconv.Atoi(c.DefaultQuery("burst_threshold", "50"))
+
+	if burstThreshold <= 0 {
+		burstThreshold = 50
+	}
+
+	data, total, err := model.GetBurstUsers(startTimestamp, endTimestamp, burstThreshold, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	pageInfo.SetTotal(int(total))
+	pageInfo.SetItems(data)
+	common.ApiSuccess(c, pageInfo)
+}
+
 func BannedUser(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Query("user_id"))
 	if err != nil {

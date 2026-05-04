@@ -77,6 +77,26 @@ export async function banUser(userId: number): Promise<void> {
   })
 }
 
+export async function getBurstUsers(params: {
+  page?: number
+  page_size?: number
+  start_timestamp?: number
+  end_timestamp?: number
+  burst_threshold?: number
+}): Promise<PaginatedResponse<AbnormalUserStat>> {
+  const queryParams: Record<string, string | number> = {
+    p: params.page ?? 1,
+    page_size: params.page_size ?? 10,
+  }
+  if (params.start_timestamp) queryParams.start_timestamp = params.start_timestamp
+  if (params.end_timestamp) queryParams.end_timestamp = params.end_timestamp
+  if (params.burst_threshold) queryParams.burst_threshold = params.burst_threshold
+  const res = await api.get('/api/risk_control/burst_users', {
+    params: queryParams,
+  })
+  return res.data.data
+}
+
 export async function getRiskControlWhitelist(): Promise<
   { user_id: number; username: string }[]
 > {

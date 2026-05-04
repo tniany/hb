@@ -32,12 +32,12 @@ type AbnormalUserStat struct {
 }
 
 type RiskControlStats struct {
-	TotalUsers     int `json:"total_users"`
-	ActiveUsers    int `json:"active_users"`
-	MultiIpUsers   int `json:"multi_ip_users"`
-	HighQuotaUsers int `json:"high_quota_users"`
-	SuspiciousIps  int `json:"suspicious_ips"`
-	TotalRequests  int `json:"total_requests"`
+	TotalUsers    int `json:"total_users"`
+	ActiveUsers   int `json:"active_users"`
+	MultiIpUsers  int `json:"multi_ip_users"`
+	BurstUsers    int `json:"burst_users"`
+	SuspiciousIps int `json:"suspicious_ips"`
+	TotalRequests int `json:"total_requests"`
 }
 
 func GetRiskControlWhitelistUserIds() []int {
@@ -319,20 +319,23 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 	}
 	stats.MultiIpUsers = int(multiIpCount)
 
-	var highQuotaCount int64
-	highQuotaQuery := LOG_DB.Table("logs").
-		Select("user_id").
+	var burstUserCount int64
+	burstHourExpr := getHourBucketExpr()
+	burstSubQuery := LOG_DB.Table("logs").
+		Select("user_id, "+burstHourExpr+" as hour_bucket, COUNT(*) as cnt").
 		Where("type = ?", LogTypeConsume).
 		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
-		Group("user_id").
-		Having("SUM(quota) >= ?", 1000000)
+		Group("user_id, "+burstHourExpr).
+		Having("COUNT(*) >= ?", 50)
 	if len(whitelistIds) > 0 {
-		highQuotaQuery = highQuotaQuery.Where("user_id NOT IN ?", whitelistIds)
+		burstSubQuery = burstSubQuery.Where("user_id NOT IN ?", whitelistIds)
 	}
-	if err := highQuotaQuery.Count(&highQuotaCount).Error; err != nil {
-		common.SysError("failed to count high quota users: " + err.Error())
+	burstQuery := LOG_DB.Table("(?) as burst", burstSubQuery).
+		Select("COUNT(DISTINCT user_id)")
+	if err := burstQuery.Count(&burstUserCount).Error; err != nil {
+		common.SysError("failed to count burst users: " + err.Error())
 	}
-	stats.HighQuotaUsers = int(highQuotaCount)
+	stats.BurstUsers = int(burstUserCount)
 
 	var suspiciousIpCount int64
 	suspiciousIpQuery := LOG_DB.Table("logs").
@@ -358,4 +361,63 @@ func GetRiskControlStats(startTimestamp int64, endTimestamp int64) (*RiskControl
 	stats.TotalRequests = int(totalRequestCount)
 
 	return stats, nil
+}
+
+func getHourBucketExpr() string {
+	if common.UsingMySQL {
+		return "FLOOR(created_at / 3600)"
+	}
+	return "created_at / 3600"
+}
+
+func GetBurstUsers(startTimestamp int64, endTimestamp int64, burstThreshold int, startIdx int, pageSize int) ([]AbnormalUserStat, int64, error) {
+	if burstThreshold <= 0 {
+		burstThreshold = 50
+	}
+
+	if startTimestamp == 0 {
+		startTimestamp = time.Now().AddDate(0, 0, -7).Unix()
+	}
+	if endTimestamp == 0 {
+		endTimestamp = time.Now().Unix()
+	}
+
+	whitelistIds := GetRiskControlWhitelistUserIds()
+	hourExpr := getHourBucketExpr()
+
+	burstSubQuery := LOG_DB.Table("logs").
+		Select("user_id, "+hourExpr+" as hour_bucket, COUNT(*) as cnt").
+		Where("type = ?", LogTypeConsume).
+		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
+		Group("user_id, "+hourExpr).
+		Having("COUNT(*) >= ?", burstThreshold)
+	if len(whitelistIds) > 0 {
+		burstSubQuery = burstSubQuery.Where("user_id NOT IN ?", whitelistIds)
+	}
+
+	var total int64
+	countQuery := LOG_DB.Table("(?) as burst", burstSubQuery).
+		Select("COUNT(DISTINCT user_id)")
+	if err := countQuery.Count(&total).Error; err != nil {
+		return nil, 0, errors.New("failed to count burst users")
+	}
+
+	burstUserIdsQuery := LOG_DB.Table("(?) as burst", burstSubQuery).
+		Select("DISTINCT user_id")
+
+	dataQuery := LOG_DB.Table("logs").
+		Select("user_id, username, COUNT(DISTINCT ip) as ip_count, COUNT(*) as request_count, SUM(quota) as total_quota, SUM(prompt_tokens) + SUM(completion_tokens) as total_tokens, AVG(use_time) as avg_use_time, MIN(created_at) as first_seen, MAX(created_at) as last_seen").
+		Where("type = ?", LogTypeConsume).
+		Where("created_at >= ? AND created_at <= ?", startTimestamp, endTimestamp).
+		Where("user_id IN (?)", burstUserIdsQuery).
+		Group("user_id, username").
+		Order("request_count DESC").
+		Offset(startIdx).Limit(pageSize)
+
+	var results []AbnormalUserStat
+	if err := dataQuery.Find(&results).Error; err != nil {
+		return nil, 0, errors.New("failed to query burst users")
+	}
+
+	return results, total, nil
 }

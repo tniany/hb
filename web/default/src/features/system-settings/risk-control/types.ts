@@ -23,7 +23,7 @@ export type RiskControlStats = {
   total_users: number
   active_users: number
   multi_ip_users: number
-  high_quota_users: number
+  burst_users: number
   suspicious_ips: number
   total_requests: number
 }

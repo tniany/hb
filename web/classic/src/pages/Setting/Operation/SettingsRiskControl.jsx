@@ -66,6 +66,13 @@ export default function SettingsRiskControl() {
   const [threshold, setThreshold] = useState(100);
   const [abnormalLoading, setAbnormalLoading] = useState(false);
 
+  const [burstData, setBurstData] = useState([]);
+  const [burstTotal, setBurstTotal] = useState(0);
+  const [burstPage, setBurstPage] = useState(1);
+  const [burstPageSize, setBurstPageSize] = useState(10);
+  const [burstThreshold, setBurstThreshold] = useState(50);
+  const [burstLoading, setBurstLoading] = useState(false);
+
   const [ipUsersData, setIpUsersData] = useState([]);
   const [ipUsersLoading, setIpUsersLoading] = useState(false);
   const [ipUsersModalVisible, setIpUsersModalVisible] = useState(false);
@@ -155,6 +162,33 @@ export default function SettingsRiskControl() {
       setAbnormalLoading(false);
     }
   }, [getTimestamps, abnormalPage, abnormalPageSize, threshold]);
+
+  const fetchBurstUsers = useCallback(async () => {
+    setBurstLoading(true);
+    try {
+      const { startTimestamp, endTimestamp } = getTimestamps();
+      const res = await API.get('/api/risk_control/burst_users', {
+        params: {
+          p: burstPage,
+          page_size: burstPageSize,
+          start_timestamp: startTimestamp,
+          end_timestamp: endTimestamp,
+          burst_threshold: burstThreshold,
+        },
+      });
+      if (res.data.success) {
+        const data = res.data.data;
+        setBurstData(data.items || []);
+        setBurstTotal(data.total || 0);
+      } else {
+        showError(res.data.message);
+      }
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      setBurstLoading(false);
+    }
+  }, [getTimestamps, burstPage, burstPageSize, burstThreshold]);
 
   const fetchIpUsers = async (ip) => {
     setIpUsersLoading(true);
@@ -265,6 +299,10 @@ export default function SettingsRiskControl() {
   useEffect(() => {
     fetchAbnormalUsers();
   }, [fetchAbnormalUsers]);
+
+  useEffect(() => {
+    fetchBurstUsers();
+  }, [fetchBurstUsers]);
 
   useEffect(() => {
     fetchWhitelist();
@@ -410,6 +448,31 @@ export default function SettingsRiskControl() {
     { title: t('最后活动'), dataIndex: 'last_seen', key: 'last_seen', render: (ts) => timestamp2string(ts) },
   ];
 
+  const burstColumns = [
+    { title: t('用户ID'), dataIndex: 'user_id', key: 'user_id' },
+    { title: t('用户名'), dataIndex: 'username', key: 'username', render: (text) => text || '-' },
+    { title: t('IP数'), dataIndex: 'ip_count', key: 'ip_count' },
+    { title: t('请求数'), dataIndex: 'request_count', key: 'request_count', render: (count) => count?.toLocaleString() },
+    { title: t('消耗额度'), dataIndex: 'total_quota', key: 'total_quota', render: (quota) => renderQuota(quota) },
+    { title: t('Token数'), dataIndex: 'total_tokens', key: 'total_tokens', render: (tokens) => tokens?.toLocaleString() },
+    { title: t('平均耗时'), dataIndex: 'avg_use_time', key: 'avg_use_time', render: (time) => `${(time || 0).toFixed(2)}s` },
+    { title: t('首次活动'), dataIndex: 'first_seen', key: 'first_seen', render: (ts) => timestamp2string(ts) },
+    { title: t('最后活动'), dataIndex: 'last_seen', key: 'last_seen', render: (ts) => timestamp2string(ts) },
+    {
+      title: t('操作'),
+      key: 'action',
+      render: (_, record) => (
+        <Button
+          size='small'
+          type='danger'
+          onClick={() => banUser(record.user_id, record.username)}
+        >
+          {t('封禁')}
+        </Button>
+      ),
+    },
+  ];
+
   const whitelistColumns = [
     { title: t('用户ID'), dataIndex: 'user_id', key: 'user_id' },
     { title: t('用户名'), dataIndex: 'username', key: 'username' },
@@ -472,7 +535,7 @@ export default function SettingsRiskControl() {
               {renderStatCard(t('多IP用户'), stats?.multi_ip_users)}
             </Col>
             <Col xs={12} sm={8} md={6} lg={4}>
-              {renderStatCard(t('高额度用户'), stats?.high_quota_users)}
+              {renderStatCard(t('短时高用量'), stats?.burst_users)}
             </Col>
           </Row>
         </Card>
@@ -560,6 +623,49 @@ export default function SettingsRiskControl() {
             onChange: (page, pageSize) => {
               setAbnormalPage(page);
               setAbnormalPageSize(pageSize);
+            },
+          }}
+        />
+      </Card>
+
+      <Card
+        title={t('短时高用量检测')}
+        style={{ marginTop: 16 }}
+        headerExtraContent={
+          <Space>
+            <span>{t('每小时请求数阈值')}:</span>
+            <Select
+              value={burstThreshold}
+              onChange={(v) => {
+                setBurstThreshold(v);
+                setBurstPage(1);
+              }}
+              style={{ width: 80 }}
+              optionList={[
+                { label: '20', value: 20 },
+                { label: '50', value: 50 },
+                { label: '100', value: 100 },
+                { label: '200', value: 200 },
+                { label: '500', value: 500 },
+              ]}
+            />
+          </Space>
+        }
+      >
+        <Table
+          loading={burstLoading}
+          columns={burstColumns}
+          dataSource={burstData}
+          rowKey='user_id'
+          pagination={{
+            currentPage: burstPage,
+            pageSize: burstPageSize,
+            total: burstTotal,
+            showSizeChanger: true,
+            pageSizeOptions: [10, 20, 50],
+            onChange: (page, pageSize) => {
+              setBurstPage(page);
+              setBurstPageSize(pageSize);
             },
           }}
         />

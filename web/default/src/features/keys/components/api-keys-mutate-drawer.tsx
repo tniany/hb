@@ -42,8 +42,10 @@ import {
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { DateTimePicker } from '@/components/datetime-picker'
 import { MultiSelect } from '@/components/multi-select'
+import { useSystemOptions } from '@/features/system-settings/hooks/use-system-options'
 import { createApiKey, updateApiKey, getApiKey } from '../api'
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants'
 import {
@@ -102,6 +104,9 @@ export function ApiKeysMutateDrawer({
   side = 'right',
 }: ApiKeyMutateDrawerProps) {
   const { t } = useTranslation()
+  const { data: systemOptionsData } = useSystemOptions()
+  const apiKeyGroupTip =
+    systemOptionsData?.data?.find((o) => o.key === 'ApiKeyGroupTip')?.value ?? ''
   const isUpdate = !!currentRow
   const { triggerRefresh } = useApiKeys()
   const { status } = useStatus()
@@ -313,6 +318,16 @@ export function ApiKeysMutateDrawer({
                   </FormItem>
                 )}
               />
+
+              {apiKeyGroupTip && (
+                <div className='px-1 pb-1'>
+                  <Alert>
+                    <AlertDescription className='text-sm'>
+                      {apiKeyGroupTip}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
 
               {selectedGroup === 'auto' && (
                 <FormField

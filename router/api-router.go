@@ -389,6 +389,7 @@ func SetApiRouter(router *gin.Engine) {
 			riskControlRoute.GET("/multi_account_ips", controller.GetMultiAccountIps)
 			riskControlRoute.GET("/ip_users", controller.GetIpUsers)
 			riskControlRoute.GET("/abnormal_users", controller.GetAbnormalUsers)
+			riskControlRoute.GET("/burst_users", controller.GetBurstUsers)
 			riskControlRoute.POST("/ban_user", controller.BannedUser)
 			riskControlRoute.GET("/whitelist", controller.GetRiskControlWhitelist)
 			riskControlRoute.POST("/whitelist/add", controller.AddRiskControlWhitelistUser)

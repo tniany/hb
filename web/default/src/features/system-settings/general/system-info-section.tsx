@@ -40,6 +40,7 @@ const _systemInfoSchema = z.object({
   About: z.string().optional(),
   HomePageContent: z.string().optional(),
   ModelSquareNotice: z.string().optional(),
+  ApiKeyGroupTip: z.string().optional(),
   legal: z.object({
     user_agreement: z.string().optional(),
     privacy_policy: z.string().optional(),
@@ -94,6 +95,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
     About: z.string().optional(),
     HomePageContent: z.string().optional(),
     ModelSquareNotice: z.string().optional(),
+    ApiKeyGroupTip: z.string().optional(),
     legal: z.object({
       user_agreement: z.string().optional(),
       privacy_policy: z.string().optional(),
@@ -332,6 +334,23 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                     {t(
                       'Notice banner displayed above the model list on the Model Square page. Leave empty to hide.'
                     )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='ApiKeyGroupTip'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('API Key Group Tip')}</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={2} />
+                  </FormControl>
+                  <FormDescription>
+                    {t('Warning message displayed below group selector in API key creation form')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

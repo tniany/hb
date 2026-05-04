@@ -3806,7 +3806,9 @@
     "错误率": "Error Rate",
     "可疑IP": "Suspicious IPs",
     "多IP用户": "Multi-IP Users",
-    "高额度用户": "High Quota Users",
+    "短时高用量": "Burst Users",
+    "短时高用量检测": "Burst Users Detection",
+    "每小时请求数阈值": "Requests per Hour Threshold",
     "同IP多账号检测": "Multi-Account IP Detection",
     "最小账号数": "Min Accounts",
     "IP 地址": "IP Address",
@@ -3836,6 +3838,9 @@
     "输入用户ID": "Enter User ID",
     "已从白名单移除": "Removed from whitelist",
     "关联用户": "Associated Users",
-    "请输入有效的用户ID": "Please enter a valid user ID"
+    "请输入有效的用户ID": "Please enter a valid user ID",
+    "API 密钥分组提示": "API Key Group Tip",
+    "创建API密钥时在分组选择器下方显示的提示信息": "Warning message displayed below group selector in API key creation form",
+    "设置 API 密钥分组提示": "Set API Key Group Tip"
   }
 }

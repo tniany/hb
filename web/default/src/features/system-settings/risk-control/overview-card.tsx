@@ -4,7 +4,7 @@ import {
   Users,
   Activity,
   Network,
-  TrendingUp,
+  Zap,
   AlertTriangle,
   BarChart3,
 } from 'lucide-react'
@@ -93,9 +93,9 @@ export function OverviewCard({
         icon={<AlertTriangle className='h-4 w-4' />}
       />
       <StatCard
-        title={t('High Quota Users')}
-        value={stats.high_quota_users}
-        icon={<TrendingUp className='h-4 w-4' />}
+        title={t('Burst Users')}
+        value={stats.burst_users}
+        icon={<Zap className='h-4 w-4' />}
       />
     </div>
   )
