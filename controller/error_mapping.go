@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"strconv"
+
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/gin-gonic/gin"
@@ -30,4 +32,19 @@ func GetErrorMappingByCode(c *gin.Context) {
 		return
 	}
 	common.ApiSuccess(c, mapping)
+}
+
+func GetErrorLogs(c *gin.Context) {
+	pageInfo := common.GetPageQuery(c)
+	modelName := c.Query("model_name")
+	channel, _ := strconv.Atoi(c.Query("channel_id"))
+	username := c.Query("username")
+	logs, total, err := model.GetAllLogs(model.LogTypeError, 0, 0, modelName, username, "", pageInfo.GetStartIdx(), pageInfo.GetPageSize(), channel, "", "")
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	pageInfo.SetTotal(int(total))
+	pageInfo.SetItems(logs)
+	common.ApiSuccess(c, pageInfo)
 }

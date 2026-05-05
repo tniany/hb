@@ -400,6 +400,7 @@ func SetApiRouter(router *gin.Engine) {
 		errorMappingRoute.Use(middleware.AdminAuth())
 		{
 			errorMappingRoute.GET("", controller.GetErrorMappings)
+			errorMappingRoute.GET("/error_logs", controller.GetErrorLogs)
 			errorMappingRoute.GET("/:code", controller.GetErrorMappingByCode)
 		}
 	}

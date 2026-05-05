@@ -11,8 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SettingsSection } from '../components/settings-section'
-import { getErrorMappings, getErrorMappingByCode } from './api'
+import { getErrorMappings, getErrorMappingByCode, getErrorLogs } from './api'
 
 interface ErrorMapping {
   id: number
@@ -27,12 +28,34 @@ interface ErrorMapping {
   created_at: number
 }
 
+interface ErrorLog {
+  id: number
+  user_id: number
+  username: string
+  created_at: number
+  content: string
+  model_name: string
+  channel: number
+  token_name: string
+  use_time: number
+  is_stream: boolean
+  other: string
+  request_id: string
+}
+
 function formatTimestamp(ts: number) {
   if (!ts) return '-'
   return new Date(ts * 1000).toLocaleString()
 }
 
-export function ErrorLogSection() {
+function truncateText(text: string, maxLength: number = 80) {
+  if (!text) return '-'
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+}
+
+const PAGE_SIZE = 20
+
+function ErrorCodeMappingsTab() {
   const { t } = useTranslation()
   const [searchCode, setSearchCode] = useState('')
   const [activeSearch, setActiveSearch] = useState('')
@@ -40,7 +63,7 @@ export function ErrorLogSection() {
 
   const { data: listData, isLoading: listLoading } = useQuery({
     queryKey: ['error-mappings', page],
-    queryFn: () => getErrorMappings(page, 20),
+    queryFn: () => getErrorMappings(page, PAGE_SIZE),
     enabled: !activeSearch,
   })
 
@@ -65,16 +88,13 @@ export function ErrorLogSection() {
     ? searchData?.data
       ? [searchData.data]
       : []
-    : listData?.data || []
-  const total: number = listData?.total || 0
-  const totalPages = Math.ceil(total / 20)
+    : listData?.data?.items || []
+  const total: number = listData?.data?.total || 0
+  const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
-    <SettingsSection
-      title={t('Error Logs')}
-      description={t('View API error code mappings')}
-    >
-      <div className='flex gap-2 mb-4'>
+    <div className='space-y-4'>
+      <div className='flex gap-2'>
         <Input
           placeholder={t('Search by error code')}
           value={searchCode}
@@ -174,6 +194,178 @@ export function ErrorLogSection() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function ErrorLogsTab() {
+  const { t } = useTranslation()
+  const [page, setPage] = useState(1)
+  const [modelName, setModelName] = useState('')
+  const [channelId, setChannelId] = useState('')
+  const [username, setUsername] = useState('')
+  const [filters, setFilters] = useState<{
+    modelName?: string
+    channelId?: string
+    username?: string
+  }>({})
+
+  const { data: listData, isLoading } = useQuery({
+    queryKey: ['error-logs', page, filters],
+    queryFn: () => getErrorLogs(page, PAGE_SIZE, filters),
+  })
+
+  const logs: ErrorLog[] = listData?.data?.items || []
+  const total: number = listData?.data?.total || 0
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  const handleSearch = () => {
+    setFilters({
+      modelName: modelName.trim() || undefined,
+      channelId: channelId.trim() || undefined,
+      username: username.trim() || undefined,
+    })
+    setPage(1)
+  }
+
+  const handleReset = () => {
+    setModelName('')
+    setChannelId('')
+    setUsername('')
+    setFilters({})
+    setPage(1)
+  }
+
+  return (
+    <div className='space-y-4'>
+      <div className='flex flex-wrap gap-2'>
+        <Input
+          placeholder={t('Model name')}
+          value={modelName}
+          onChange={(e) => setModelName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className='max-w-[180px]'
+        />
+        <Input
+          placeholder={t('Channel ID')}
+          value={channelId}
+          onChange={(e) => setChannelId(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className='max-w-[150px]'
+        />
+        <Input
+          placeholder={t('Username')}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className='max-w-[150px]'
+        />
+        <Button variant='secondary' onClick={handleSearch}>
+          {t('Search')}
+        </Button>
+        <Button variant='ghost' onClick={handleReset}>
+          {t('Reset')}
+        </Button>
+      </div>
+
+      {isLoading && (
+        <p className='text-muted-foreground text-sm'>{t('Loading')}...</p>
+      )}
+
+      {!isLoading && logs.length === 0 && (
+        <p className='text-muted-foreground text-sm'>{t('No data')}</p>
+      )}
+
+      {logs.length > 0 && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('Time')}</TableHead>
+              <TableHead>{t('Username')}</TableHead>
+              <TableHead>{t('Model')}</TableHead>
+              <TableHead>{t('Channel')}</TableHead>
+              <TableHead>{t('Error Content')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {logs.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className='text-xs'>
+                  {formatTimestamp(item.created_at)}
+                </TableCell>
+                <TableCell>{item.username || '-'}</TableCell>
+                <TableCell>{item.model_name || '-'}</TableCell>
+                <TableCell>
+                  {item.channel ? `#${item.channel}` : '-'}
+                </TableCell>
+                <TableCell
+                  className='text-xs max-w-[300px] truncate'
+                  title={item.content}
+                >
+                  {truncateText(item.content)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+
+      {totalPages > 1 && (
+        <div className='flex items-center justify-between mt-4'>
+          <p className='text-muted-foreground text-sm'>
+            {t('Total')}: {total}
+          </p>
+          <div className='flex gap-2'>
+            <Button
+              variant='outline'
+              size='sm'
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              {t('Previous')}
+            </Button>
+            <span className='text-sm leading-9'>
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant='outline'
+              size='sm'
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {t('Next')}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function ErrorLogSection() {
+  const { t } = useTranslation()
+
+  return (
+    <SettingsSection
+      title={t('Error Logs')}
+      description={t('View API error code mappings and error logs')}
+    >
+      <Tabs defaultValue='error-mappings'>
+        <TabsList>
+          <TabsTrigger value='error-mappings'>
+            {t('Error Code Mappings')}
+          </TabsTrigger>
+          <TabsTrigger value='error-logs'>
+            {t('Error Logs')}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value='error-mappings'>
+          <ErrorCodeMappingsTab />
+        </TabsContent>
+        <TabsContent value='error-logs'>
+          <ErrorLogsTab />
+        </TabsContent>
+      </Tabs>
     </SettingsSection>
   )
 }
