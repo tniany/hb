@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { RefreshCw } from 'lucide-react'
 import { SettingsSection } from '../components/settings-section'
 import { getErrorMappings, getErrorMappingByCode, getErrorLogs } from './api'
 
@@ -25,6 +26,7 @@ interface ErrorMapping {
   model_name: string
   token_name: string
   user_id: number
+  username: string
   created_at: number
 }
 
@@ -60,10 +62,12 @@ function ErrorCodeMappingsTab() {
   const [searchCode, setSearchCode] = useState('')
   const [activeSearch, setActiveSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [filterUsername, setFilterUsername] = useState('')
+  const [activeUsername, setActiveUsername] = useState('')
 
-  const { data: listData, isLoading: listLoading } = useQuery({
-    queryKey: ['error-mappings', page],
-    queryFn: () => getErrorMappings(page, PAGE_SIZE),
+  const { data: listData, isLoading: listLoading, refetch, isFetching } = useQuery({
+    queryKey: ['error-mappings', page, activeUsername],
+    queryFn: () => getErrorMappings(page, PAGE_SIZE, activeUsername || undefined),
     enabled: !activeSearch,
   })
 
@@ -76,12 +80,15 @@ function ErrorCodeMappingsTab() {
   const handleSearch = () => {
     const trimmed = searchCode.trim()
     setActiveSearch(trimmed)
+    setActiveUsername(filterUsername.trim())
     setPage(1)
   }
 
   const handleClear = () => {
     setSearchCode('')
+    setFilterUsername('')
     setActiveSearch('')
+    setActiveUsername('')
   }
 
   const mappings: ErrorMapping[] = activeSearch
@@ -102,14 +109,34 @@ function ErrorCodeMappingsTab() {
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           className='max-w-xs'
         />
+        <Input
+          placeholder={t('Username')}
+          value={filterUsername}
+          onChange={(e) => setFilterUsername(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setActiveUsername(filterUsername.trim())
+              setPage(1)
+            }
+          }}
+          className='max-w-[150px]'
+        />
         <Button variant='secondary' onClick={handleSearch}>
           {t('Search')}
         </Button>
-        {activeSearch && (
+        {(activeSearch || activeUsername) && (
           <Button variant='ghost' onClick={handleClear}>
             {t('Clear')}
           </Button>
         )}
+        <Button
+          variant='outline'
+          size='icon'
+          onClick={() => refetch()}
+          disabled={isFetching}
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       {(listLoading || searchLoading) && (
@@ -128,6 +155,7 @@ function ErrorCodeMappingsTab() {
               <TableHead>{t('Status Code')}</TableHead>
               <TableHead>{t('Model')}</TableHead>
               <TableHead>{t('Channel')}</TableHead>
+              <TableHead>{t('User')}</TableHead>
               <TableHead>{t('Error Type')}</TableHead>
               <TableHead>{t('Time')}</TableHead>
             </TableRow>
@@ -144,6 +172,9 @@ function ErrorCodeMappingsTab() {
                   {item.channel_id ? `#${item.channel_id}` : '-'}
                 </TableCell>
                 <TableCell className='text-xs'>
+                  {item.username ? `${item.username} (${item.user_id})` : (item.user_id ? `#${item.user_id}` : '-')}
+                </TableCell>
+                <TableCell className='text-xs'>
                   {item.error_type || '-'}
                 </TableCell>
                 <TableCell className='text-xs'>
@@ -157,6 +188,14 @@ function ErrorCodeMappingsTab() {
 
       {activeSearch && searchData?.data && (
         <div className='mt-4 rounded-md border p-4'>
+          {searchData.data.username && (
+            <div className='mb-3'>
+              <span className='text-sm font-medium'>{t('User')}: </span>
+              <span className='text-sm text-muted-foreground'>
+                {searchData.data.username} (ID: {searchData.data.user_id})
+              </span>
+            </div>
+          )}
           <h4 className='text-sm font-medium mb-2'>
             {t('Original Error Message')}
           </h4>
@@ -210,7 +249,7 @@ function ErrorLogsTab() {
     username?: string
   }>({})
 
-  const { data: listData, isLoading } = useQuery({
+  const { data: listData, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['error-logs', page, filters],
     queryFn: () => getErrorLogs(page, PAGE_SIZE, filters),
   })
@@ -265,6 +304,14 @@ function ErrorLogsTab() {
         </Button>
         <Button variant='ghost' onClick={handleReset}>
           {t('Reset')}
+        </Button>
+        <Button
+          variant='outline'
+          size='icon'
+          onClick={() => refetch()}
+          disabled={isFetching}
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
         </Button>
       </div>
 

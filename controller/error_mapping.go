@@ -10,7 +10,8 @@ import (
 
 func GetErrorMappings(c *gin.Context) {
 	pageInfo := common.GetPageQuery(c)
-	mappings, total, err := model.GetErrorMappings(pageInfo.GetPage(), pageInfo.GetPageSize())
+	username := c.Query("username")
+	mappings, total, err := model.GetErrorMappings(pageInfo.GetPage(), pageInfo.GetPageSize(), username)
 	if err != nil {
 		common.ApiError(c, err)
 		return

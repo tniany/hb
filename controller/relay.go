@@ -96,6 +96,7 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 				ChannelId:  c.GetInt("channel_id"),
 				ModelName:  c.GetString("original_model"),
 				TokenName:  c.GetString("token_name"),
+				Username:   c.GetString("username"),
 				UserId:     c.GetInt("id"),
 				CreatedAt:  common.GetTimestamp(),
 			}

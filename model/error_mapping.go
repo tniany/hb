@@ -13,6 +13,7 @@ type ErrorMapping struct {
 	ChannelId  int    `json:"channel_id"`
 	ModelName  string `json:"model_name" gorm:"index;size:128"`
 	TokenName  string `json:"token_name" gorm:"size:128"`
+	Username   string `json:"username" gorm:"index;size:128"`
 	UserId     int    `json:"user_id"`
 	CreatedAt  int64  `json:"created_at" gorm:"bigint;index"`
 }
@@ -30,15 +31,19 @@ func GetErrorMappingByCode(code string) (*ErrorMapping, error) {
 	return &mapping, nil
 }
 
-func GetErrorMappings(page int, pageSize int) ([]ErrorMapping, int64, error) {
+func GetErrorMappings(page int, pageSize int, username string) ([]ErrorMapping, int64, error) {
 	var mappings []ErrorMapping
 	var total int64
-	err := DB.Model(&ErrorMapping{}).Count(&total).Error
+	query := DB.Model(&ErrorMapping{})
+	if username != "" {
+		query = query.Where("username = ?", username)
+	}
+	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	offset := (page - 1) * pageSize
-	err = DB.Order("created_at desc").Limit(pageSize).Offset(offset).Find(&mappings).Error
+	err = query.Order("created_at desc").Limit(pageSize).Offset(offset).Find(&mappings).Error
 	return mappings, total, err
 }
 

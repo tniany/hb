@@ -2,10 +2,13 @@ import { api } from '@/lib/api'
 
 export async function getErrorMappings(
   page: number = 1,
-  pageSize: number = 20
+  pageSize: number = 20,
+  username?: string
 ) {
+  const params: Record<string, string | number> = { p: page, page_size: pageSize }
+  if (username) params.username = username
   const res = await api.get('/api/error_mappings', {
-    params: { p: page, page_size: pageSize },
+    params,
   })
   return res.data
 }
