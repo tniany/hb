@@ -98,7 +98,7 @@ export function BasicAuthSection({ defaultValues }: BasicAuthSectionProps) {
                     {t('Password Login')}
                   </FormLabel>
                   <FormDescription>
-                    {t('Allow users to log in with password (admins can always log in with password)')}
+                    {t('Allow users to log in with password')}
                   </FormDescription>
                 </div>
                 <FormControl>

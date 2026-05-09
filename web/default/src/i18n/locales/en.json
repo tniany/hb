@@ -243,7 +243,7 @@
     "Allow upstream callbacks": "Allow upstream callbacks",
     "Allow users to check in daily for random quota rewards": "Allow users to check in daily for random quota rewards",
     "Allow users to enter promo codes": "Allow users to enter promo codes",
-    "Allow users to log in with password": "Allow users to log in with password (admins can always log in with password)",
+    "Allow users to log in with password": "Allow users to log in with password",
     "Allow users to register and sign in with Passkey (WebAuthn)": "Allow users to register and sign in with Passkey (WebAuthn)",
     "Allow users to sign in with Discord": "Allow users to sign in with Discord",
     "Allow users to sign in with GitHub": "Allow users to sign in with GitHub",
