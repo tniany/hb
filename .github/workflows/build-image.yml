@@ -43,13 +43,12 @@ jobs:
           elif [[ "$GIT_REF" == refs/tags/* ]]; then
             VERSION="${GIT_REF#refs/tags/}"
           elif [ "$GIT_REF" = "refs/heads/main" ]; then
-            VERSION="3.0.0"
+            VERSION="$(cat VERSION)"
           else
             VERSION="nightly-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "value=${VERSION}" >> $GITHUB_OUTPUT
-          echo "${VERSION}" > VERSION
           echo "Building version: ${VERSION} for linux/amd64"
 
       - name: Set up Docker Buildx
@@ -101,13 +100,12 @@ jobs:
           elif [[ "$GIT_REF" == refs/tags/* ]]; then
             VERSION="${GIT_REF#refs/tags/}"
           elif [ "$GIT_REF" = "refs/heads/main" ]; then
-            VERSION="3.0.0"
+            VERSION="$(cat VERSION)"
           else
             VERSION="nightly-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "value=${VERSION}" >> $GITHUB_OUTPUT
-          echo "${VERSION}" > VERSION
           echo "Building version: ${VERSION} for linux/arm64"
 
       - name: Set up Docker Buildx
@@ -165,7 +163,7 @@ jobs:
           elif [[ "$GIT_REF" == refs/tags/* ]]; then
             VERSION="${GIT_REF#refs/tags/}"
           elif [ "$GIT_REF" = "refs/heads/main" ]; then
-            VERSION="3.0.0"
+            VERSION="$(cat VERSION)"
           else
             VERSION="nightly-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           fi
