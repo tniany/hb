@@ -78,8 +78,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=amd64
-          cache-to: type=gha,scope=amd64,mode=max
+          no-cache: true
+          cache-from: type=gha,scope=amd64-v2
+          cache-to: type=gha,scope=amd64-v2,mode=max
 
   build_linux_arm64:
     name: Build Linux arm64
@@ -135,8 +136,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=arm64
-          cache-to: type=gha,scope=arm64,mode=max
+          no-cache: true
+          cache-from: type=gha,scope=arm64-v2
+          cache-to: type=gha,scope=arm64-v2,mode=max
 
   create_manifest:
     name: Create multi-arch manifest

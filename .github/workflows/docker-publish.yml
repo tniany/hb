@@ -88,8 +88,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
+          cache-from: type=gha,scope=${{ matrix.arch }}-v2
+          cache-to: type=gha,scope=${{ matrix.arch }}-v2,mode=max
 
   create_manifests:
     name: Create multi-arch manifests
