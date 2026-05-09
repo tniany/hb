@@ -91,3 +91,12 @@ func (e GeneralErrorResponse) ToMessage() string {
 	}
 	return ""
 }
+
+type UnifiedErrorResponse struct {
+	Success    bool   `json:"success"`
+	ErrorCode  string `json:"error_code"`
+	Message    string `json:"message"`
+	Type       string `json:"type"`
+	Code       string `json:"code"`
+	StatusCode int    `json:"status_code,omitempty"`
+}

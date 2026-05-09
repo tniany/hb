@@ -80,11 +80,11 @@ func startCodexOAuthWithChannelID(c *gin.Context, channelID int) {
 			return
 		}
 		if ch == nil {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "channel not found"})
+			common.ApiErrorMsg(c, "channel not found")
 			return
 		}
 		if ch.Type != constant.ChannelTypeCodex {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "channel type is not Codex"})
+			common.ApiErrorMsg(c, "channel type is not Codex")
 			return
 		}
 	}
@@ -133,15 +133,15 @@ func completeCodexOAuthWithChannelID(c *gin.Context, channelID int) {
 	code, state, err := parseCodexAuthorizationInput(req.Input)
 	if err != nil {
 		common.SysError("failed to parse codex authorization input: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "解析授权信息失败，请检查输入格式"})
+		common.ApiErrorMsg(c, "解析授权信息失败，请检查输入格式")
 		return
 	}
 	if strings.TrimSpace(code) == "" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "missing authorization code"})
+		common.ApiErrorMsg(c, "missing authorization code")
 		return
 	}
 	if strings.TrimSpace(state) == "" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "missing state in input"})
+		common.ApiErrorMsg(c, "missing state in input")
 		return
 	}
 
@@ -153,11 +153,11 @@ func completeCodexOAuthWithChannelID(c *gin.Context, channelID int) {
 			return
 		}
 		if ch == nil {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "channel not found"})
+			common.ApiErrorMsg(c, "channel not found")
 			return
 		}
 		if ch.Type != constant.ChannelTypeCodex {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "channel type is not Codex"})
+			common.ApiErrorMsg(c, "channel type is not Codex")
 			return
 		}
 		channelProxy = ch.GetSetting().Proxy
@@ -167,11 +167,11 @@ func completeCodexOAuthWithChannelID(c *gin.Context, channelID int) {
 	expectedState, _ := session.Get(codexOAuthSessionKey(channelID, "state")).(string)
 	verifier, _ := session.Get(codexOAuthSessionKey(channelID, "verifier")).(string)
 	if strings.TrimSpace(expectedState) == "" || strings.TrimSpace(verifier) == "" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "oauth flow not started or session expired"})
+		common.ApiErrorMsg(c, "oauth flow not started or session expired")
 		return
 	}
 	if state != expectedState {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "state mismatch"})
+		common.ApiErrorMsg(c, "state mismatch")
 		return
 	}
 
@@ -181,13 +181,13 @@ func completeCodexOAuthWithChannelID(c *gin.Context, channelID int) {
 	tokenRes, err := service.ExchangeCodexAuthorizationCodeWithProxy(ctx, code, verifier, channelProxy)
 	if err != nil {
 		common.SysError("failed to exchange codex authorization code: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "授权码交换失败，请重试"})
+		common.ApiErrorMsg(c, "授权码交换失败，请重试")
 		return
 	}
 
 	accountID, ok := service.ExtractCodexAccountIDFromJWT(tokenRes.AccessToken)
 	if !ok {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "failed to extract account_id from access_token"})
+		common.ApiErrorMsg(c, "failed to extract account_id from access_token")
 		return
 	}
 	email, _ := service.ExtractEmailFromJWT(tokenRes.AccessToken)

@@ -542,7 +542,7 @@ func (c *ClaudeResponse) GetClaudeError() *types.ClaudeError {
 	case string:
 		// 处理简单字符串错误
 		return &types.ClaudeError{
-			Type:    "upstream_error",
+			Type:    "hanbingfreeapi",
 			Message: err,
 		}
 	default:

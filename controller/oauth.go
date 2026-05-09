@@ -45,10 +45,7 @@ func HandleOAuth(c *gin.Context) {
 	providerName := c.Param("provider")
 	provider := oauth.GetProvider(providerName)
 	if provider == nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": i18n.T(c, i18n.MsgOAuthUnknownProvider),
-		})
+		common.ApiErrorMsg(c, i18n.T(c, i18n.MsgOAuthUnknownProvider))
 		return
 	}
 
@@ -57,9 +54,7 @@ func HandleOAuth(c *gin.Context) {
 	// 1. Validate state (CSRF protection)
 	state := c.Query("state")
 	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
-		c.JSON(http.StatusForbidden, gin.H{
-			"success": false,
-			"message": i18n.T(c, i18n.MsgOAuthStateInvalid),
+		common.ApiErrorMsg(c, i18n.T(c, i18n.MsgOAuthStateInvalid))
 		})
 		return
 	}

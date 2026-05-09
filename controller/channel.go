@@ -91,7 +91,7 @@ func GetAllChannels(c *gin.Context) {
 		tags, err := model.GetPaginatedTags(pageInfo.GetStartIdx(), pageInfo.GetPageSize())
 		if err != nil {
 			common.SysError("failed to get paginated tags: " + err.Error())
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取标签失败，请稍后重试"})
+			common.ApiErrorMsg(c, "获取标签失败，请稍后重试")
 			return
 		}
 		for _, tag := range tags {
@@ -139,7 +139,7 @@ func GetAllChannels(c *gin.Context) {
 		err := baseQuery.Order(order).Limit(pageInfo.GetPageSize()).Offset(pageInfo.GetStartIdx()).Omit("key").Find(&channelData).Error
 		if err != nil {
 			common.SysError("failed to get channels: " + err.Error())
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道列表失败，请稍后重试"})
+			common.ApiErrorMsg(c, "获取渠道列表失败，请稍后重试")
 			return
 		}
 	}
@@ -274,10 +274,7 @@ func SearchChannels(c *gin.Context) {
 	} else {
 		channels, err := model.SearchChannels(keyword, group, modelKeyword, idSort)
 		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": err.Error(),
-			})
+			common.ApiErrorMsg(c, err.Error())
 			return
 		}
 		channelData = channels
@@ -505,7 +502,7 @@ func RefreshCodexChannelCredential(c *gin.Context) {
 	oauthKey, ch, err := service.RefreshCodexChannelCredential(ctx, channelId, service.CodexCredentialRefreshOptions{ResetCaches: true})
 	if err != nil {
 		common.SysError("failed to refresh codex channel credential: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "刷新凭证失败，请稍后重试"})
+		common.ApiErrorMsg(c, "刷新凭证失败，请稍后重试")
 		return
 	}
 
@@ -573,10 +570,7 @@ func AddChannel(c *gin.Context) {
 
 	// 使用统一的校验函数
 	if err := validateChannel(addChannelRequest.Channel, true); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		common.ApiErrorMsg(c, err.Error())
 		return
 	}
 
@@ -627,10 +621,7 @@ func AddChannel(c *gin.Context) {
 	case "single":
 		keys = []string{addChannelRequest.Channel.Key}
 	default:
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "不支持的添加模式",
-		})
+		common.ApiErrorMsg(c, "不支持的添加模式")
 		return
 	}
 
@@ -710,10 +701,7 @@ func DisableTagChannels(c *gin.Context) {
 	channelTag := ChannelTag{}
 	err := c.ShouldBindJSON(&channelTag)
 	if err != nil || channelTag.Tag == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "参数错误",
-		})
+		common.ApiErrorMsg(c, "参数错误")
 		return
 	}
 	err = model.DisableChannelByTag(channelTag.Tag)
@@ -733,10 +721,7 @@ func EnableTagChannels(c *gin.Context) {
 	channelTag := ChannelTag{}
 	err := c.ShouldBindJSON(&channelTag)
 	if err != nil || channelTag.Tag == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "参数错误",
-		})
+		common.ApiErrorMsg(c, "参数错误")
 		return
 	}
 	err = model.EnableChannelByTag(channelTag.Tag)
@@ -772,10 +757,7 @@ func EditTagChannels(c *gin.Context) {
 	if channelTag.ParamOverride != nil {
 		trimmed := strings.TrimSpace(*channelTag.ParamOverride)
 		if trimmed != "" && !json.Valid([]byte(trimmed)) {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "参数覆盖必须是合法的 JSON 格式",
-			})
+			common.ApiErrorMsg(c, "参数覆盖必须是合法的 JSON 格式")
 			return
 		}
 		channelTag.ParamOverride = common.GetPointer[string](trimmed)
@@ -783,10 +765,7 @@ func EditTagChannels(c *gin.Context) {
 	if channelTag.HeaderOverride != nil {
 		trimmed := strings.TrimSpace(*channelTag.HeaderOverride)
 		if trimmed != "" && !json.Valid([]byte(trimmed)) {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "请求头覆盖必须是合法的 JSON 格式",
-			})
+			common.ApiErrorMsg(c, "请求头覆盖必须是合法的 JSON 格式")
 			return
 		}
 		channelTag.HeaderOverride = common.GetPointer[string](trimmed)
@@ -903,12 +882,9 @@ func UpdateChannel(c *gin.Context) {
 					if strings.HasPrefix(strings.TrimSpace(channel.Key), "[") {
 						array, err := getVertexArrayKeys(channel.Key)
 						if err != nil {
-							c.JSON(http.StatusOK, gin.H{
-								"success": false,
-								"message": "追加密钥解析失败: " + err.Error(),
-							})
-							return
-						}
+						common.ApiErrorMsg(c, "追加密钥解析失败: " + err.Error())
+						return
+					}
 						newKeys = array
 					} else {
 						// 单个JSON密钥
@@ -1049,18 +1025,12 @@ func FetchModels(c *gin.Context) {
 
 	response, err := client.Do(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		common.ApiErrorMsg(c, err.Error())
 		return
 	}
 	//check status code
 	if response.StatusCode != http.StatusOK {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to fetch models",
-		})
+		common.ApiErrorMsg(c, "Failed to fetch models")
 		return
 	}
 	defer response.Body.Close()
@@ -1072,10 +1042,7 @@ func FetchModels(c *gin.Context) {
 	}
 
 	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		common.ApiErrorMsg(c, err.Error())
 		return
 	}
 
@@ -1094,10 +1061,7 @@ func BatchSetChannelTag(c *gin.Context) {
 	channelBatch := ChannelBatch{}
 	err := c.ShouldBindJSON(&channelBatch)
 	if err != nil || len(channelBatch.Ids) == 0 {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "参数错误",
-		})
+		common.ApiErrorMsg(c, "参数错误")
 		return
 	}
 	err = model.BatchSetChannelTag(channelBatch.Ids, channelBatch.Tag)
@@ -1117,19 +1081,13 @@ func BatchSetChannelTag(c *gin.Context) {
 func GetTagModels(c *gin.Context) {
 	tag := c.Query("tag")
 	if tag == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "tag不能为空",
-		})
+		common.ApiErrorMsg(c, "tag不能为空")
 		return
 	}
 
 	channels, err := model.GetChannelsByTag(tag, false, false) // idSort=false, selectAll=false
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		common.ApiErrorMsg(c, err.Error())
 		return
 	}
 
@@ -1164,7 +1122,7 @@ func GetTagModels(c *gin.Context) {
 func CopyChannel(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "invalid id"})
+		common.ApiErrorMsg(c, "invalid id")
 		return
 	}
 
@@ -1180,7 +1138,7 @@ func CopyChannel(c *gin.Context) {
 	origin, err := model.GetChannelById(id, true)
 	if err != nil {
 		common.SysError("failed to get channel by id: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道信息失败，请稍后重试"})
+		common.ApiErrorMsg(c, "获取渠道信息失败，请稍后重试")
 		return
 	}
 
@@ -1199,7 +1157,7 @@ func CopyChannel(c *gin.Context) {
 	// insert
 	if err := model.BatchInsertChannels([]model.Channel{clone}); err != nil {
 		common.SysError("failed to clone channel: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "复制渠道失败，请稍后重试"})
+		common.ApiErrorMsg(c, "复制渠道失败，请稍后重试")
 		return
 	}
 	model.InitChannelCache()
@@ -1249,18 +1207,12 @@ func ManageMultiKeys(c *gin.Context) {
 
 	channel, err := model.GetChannelById(request.ChannelId, true)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "渠道不存在",
-		})
+		common.ApiErrorMsg(c, "渠道不存在")
 		return
 	}
 
 	if !channel.ChannelInfo.IsMultiKey {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "该渠道不是多密钥模式",
-		})
+		common.ApiErrorMsg(c, "该渠道不是多密钥模式")
 		return
 	}
 
@@ -1385,19 +1337,13 @@ func ManageMultiKeys(c *gin.Context) {
 
 	case "disable_key":
 		if request.KeyIndex == nil {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "未指定要禁用的密钥索引",
-			})
+			common.ApiErrorMsg(c, "未指定要禁用的密钥索引")
 			return
 		}
 
 		keyIndex := *request.KeyIndex
 		if keyIndex < 0 || keyIndex >= channel.ChannelInfo.MultiKeySize {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "密钥索引超出范围",
-			})
+			common.ApiErrorMsg(c, "密钥索引超出范围")
 			return
 		}
 
@@ -1428,19 +1374,13 @@ func ManageMultiKeys(c *gin.Context) {
 
 	case "enable_key":
 		if request.KeyIndex == nil {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "未指定要启用的密钥索引",
-			})
+			common.ApiErrorMsg(c, "未指定要启用的密钥索引")
 			return
 		}
 
 		keyIndex := *request.KeyIndex
 		if keyIndex < 0 || keyIndex >= channel.ChannelInfo.MultiKeySize {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "密钥索引超出范围",
-			})
+			common.ApiErrorMsg(c, "密钥索引超出范围")
 			return
 		}
 
@@ -1519,10 +1459,7 @@ func ManageMultiKeys(c *gin.Context) {
 		}
 
 		if disabledCount == 0 {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "没有可禁用的密钥",
-			})
+			common.ApiErrorMsg(c, "没有可禁用的密钥")
 			return
 		}
 
@@ -1541,19 +1478,13 @@ func ManageMultiKeys(c *gin.Context) {
 
 	case "delete_key":
 		if request.KeyIndex == nil {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "未指定要删除的密钥索引",
-			})
+			common.ApiErrorMsg(c, "未指定要删除的密钥索引")
 			return
 		}
 
 		keyIndex := *request.KeyIndex
 		if keyIndex < 0 || keyIndex >= channel.ChannelInfo.MultiKeySize {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "密钥索引超出范围",
-			})
+			common.ApiErrorMsg(c, "密钥索引超出范围")
 			return
 		}
 
@@ -1592,10 +1523,7 @@ func ManageMultiKeys(c *gin.Context) {
 		}
 
 		if len(remainingKeys) == 0 {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "不能删除最后一个密钥",
-			})
+			common.ApiErrorMsg(c, "不能删除最后一个密钥")
 			return
 		}
 
@@ -1689,10 +1617,7 @@ func ManageMultiKeys(c *gin.Context) {
 		return
 
 	default:
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "不支持的操作",
-		})
+		common.ApiErrorMsg(c, "不支持的操作")
 		return
 	}
 }
@@ -1705,37 +1630,25 @@ func OllamaPullModel(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request parameters",
-		})
+		common.ApiErrorMsg(c, "Invalid request parameters")
 		return
 	}
 
 	if req.ChannelID == 0 || req.ModelName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Channel ID and model name are required",
-		})
+		common.ApiErrorMsg(c, "Channel ID and model name are required")
 		return
 	}
 
 	// 获取渠道信息
 	channel, err := model.GetChannelById(req.ChannelID, true)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Channel not found",
-		})
+		common.ApiErrorMsg(c, "Channel not found")
 		return
 	}
 
 	// 检查是否是 Ollama 渠道
 	if channel.Type != constant.ChannelTypeOllama {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "This operation is only supported for Ollama channels",
-		})
+		common.ApiErrorMsg(c, "This operation is only supported for Ollama channels")
 		return
 	}
 
@@ -1747,10 +1660,7 @@ func OllamaPullModel(c *gin.Context) {
 	key := strings.Split(channel.Key, "\n")[0]
 	err = ollama.PullOllamaModel(baseURL, key, req.ModelName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": fmt.Sprintf("Failed to pull model: %s", err.Error()),
-		})
+		common.ApiErrorMsg(c, fmt.Sprintf("Failed to pull model: %s", err.Error()))
 		return
 	}
 
@@ -1768,37 +1678,25 @@ func OllamaPullModelStream(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request parameters",
-		})
+		common.ApiErrorMsg(c, "Invalid request parameters")
 		return
 	}
 
 	if req.ChannelID == 0 || req.ModelName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Channel ID and model name are required",
-		})
+		common.ApiErrorMsg(c, "Channel ID and model name are required")
 		return
 	}
 
 	// 获取渠道信息
 	channel, err := model.GetChannelById(req.ChannelID, true)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Channel not found",
-		})
+		common.ApiErrorMsg(c, "Channel not found")
 		return
 	}
 
 	// 检查是否是 Ollama 渠道
 	if channel.Type != constant.ChannelTypeOllama {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "This operation is only supported for Ollama channels",
-		})
+		common.ApiErrorMsg(c, "This operation is only supported for Ollama channels")
 		return
 	}
 
@@ -1850,37 +1748,25 @@ func OllamaDeleteModel(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request parameters",
-		})
+		common.ApiErrorMsg(c, "Invalid request parameters")
 		return
 	}
 
 	if req.ChannelID == 0 || req.ModelName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Channel ID and model name are required",
-		})
+		common.ApiErrorMsg(c, "Channel ID and model name are required")
 		return
 	}
 
 	// 获取渠道信息
 	channel, err := model.GetChannelById(req.ChannelID, true)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Channel not found",
-		})
+		common.ApiErrorMsg(c, "Channel not found")
 		return
 	}
 
 	// 检查是否是 Ollama 渠道
 	if channel.Type != constant.ChannelTypeOllama {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "This operation is only supported for Ollama channels",
-		})
+		common.ApiErrorMsg(c, "This operation is only supported for Ollama channels")
 		return
 	}
 
@@ -1892,10 +1778,7 @@ func OllamaDeleteModel(c *gin.Context) {
 	key := strings.Split(channel.Key, "\n")[0]
 	err = ollama.DeleteOllamaModel(baseURL, key, req.ModelName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": fmt.Sprintf("Failed to delete model: %s", err.Error()),
-		})
+		common.ApiErrorMsg(c, fmt.Sprintf("Failed to delete model: %s", err.Error()))
 		return
 	}
 
@@ -1909,27 +1792,18 @@ func OllamaDeleteModel(c *gin.Context) {
 func OllamaVersion(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid channel id",
-		})
+		common.ApiErrorMsg(c, "Invalid channel id")
 		return
 	}
 
 	channel, err := model.GetChannelById(id, true)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Channel not found",
-		})
+		common.ApiErrorMsg(c, "Channel not found")
 		return
 	}
 
 	if channel.Type != constant.ChannelTypeOllama {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "This operation is only supported for Ollama channels",
-		})
+		common.ApiErrorMsg(c, "This operation is only supported for Ollama channels")
 		return
 	}
 
@@ -1941,10 +1815,7 @@ func OllamaVersion(c *gin.Context) {
 	key := strings.Split(channel.Key, "\n")[0]
 	version, err := ollama.FetchOllamaVersion(baseURL, key)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": fmt.Sprintf("获取Ollama版本失败: %s", err.Error()),
-		})
+		common.ApiErrorMsg(c, fmt.Sprintf("获取Ollama版本失败: %s", err.Error()))
 		return
 	}
 

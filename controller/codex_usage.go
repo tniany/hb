@@ -30,32 +30,32 @@ func GetCodexChannelUsage(c *gin.Context) {
 		return
 	}
 	if ch == nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "channel not found"})
+		common.ApiErrorMsg(c, "channel not found")
 		return
 	}
 	if ch.Type != constant.ChannelTypeCodex {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "channel type is not Codex"})
+		common.ApiErrorMsg(c, "channel type is not Codex")
 		return
 	}
 	if ch.ChannelInfo.IsMultiKey {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "multi-key channel is not supported"})
+		common.ApiErrorMsg(c, "multi-key channel is not supported")
 		return
 	}
 
 	oauthKey, err := codex.ParseOAuthKey(strings.TrimSpace(ch.Key))
 	if err != nil {
 		common.SysError("failed to parse oauth key: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "解析凭证失败，请检查渠道配置"})
+		common.ApiErrorMsg(c, "解析凭证失败，请检查渠道配置")
 		return
 	}
 	accessToken := strings.TrimSpace(oauthKey.AccessToken)
 	accountID := strings.TrimSpace(oauthKey.AccountID)
 	if accessToken == "" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "codex channel: access_token is required"})
+		common.ApiErrorMsg(c, "codex channel: access_token is required")
 		return
 	}
 	if accountID == "" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "codex channel: account_id is required"})
+		common.ApiErrorMsg(c, "codex channel: account_id is required")
 		return
 	}
 
@@ -71,7 +71,7 @@ func GetCodexChannelUsage(c *gin.Context) {
 	statusCode, body, err := service.FetchCodexWhamUsage(ctx, client, ch.GetBaseURL(), accessToken, accountID)
 	if err != nil {
 		common.SysError("failed to fetch codex usage: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取用量信息失败，请稍后重试"})
+		common.ApiErrorMsg(c, "获取用量信息失败，请稍后重试")
 		return
 	}
 
@@ -101,7 +101,7 @@ func GetCodexChannelUsage(c *gin.Context) {
 			statusCode, body, err = service.FetchCodexWhamUsage(ctx2, client, ch.GetBaseURL(), oauthKey.AccessToken, accountID)
 			if err != nil {
 				common.SysError("failed to fetch codex usage after refresh: " + err.Error())
-				c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取用量信息失败，请稍后重试"})
+				common.ApiErrorMsg(c, "获取用量信息失败，请稍后重试")
 				return
 			}
 		}

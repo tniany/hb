@@ -1,0 +1,14 @@
+- [x] dto/error.go 中定义了 UnifiedErrorResponse 结构体，包含 success(bool), error_code(string), message(string), **type(string, 默认 "hanbingfreeapi")**, **code(string, 默认 "hanbingfreeapi")**, status_code(int) 字段
+- [x] common/gin.go 中实现了 ApiUnifiedError 和 ApiUnifiedErrorFromNewAPIError 函数（type 和 code 自动设为 "hanbingfreeapi"）
+- [x] ApiError/ApiErrorMsg 函数已更新为返回 UnifiedErrorResponse 格式（type="hanbingfreeapi", code="hanbingfreeapi"）
+- [x] `NewAPIError.ToOpenAIError()` 输出的 Type 和 Code 统一为 `"hanbingfreeapi"`
+- [x] `NewAPIError.ToClaudeError()` 输出的 Type 统一为 `"hanbingfreeapi"`
+- [x] Admin API（channel.go, risk_control.go, billing.go, model.go, video_proxy.go 等）的所有错误返回已迁移到统一格式
+- [x] Relay OpenAI 格式错误中 error.type 和 error.code 统一为 `"hanbingfreeapi"`
+- [x] Relay Claude 格式错误中 error.type 统一为 `"hanbingfreeapi"`
+- [x] Midjourney 格式错误中 type 统一为 `"hanbingfreeapi"`
+- [x] RelayNotImplemented / RelayNotFound 的 type 和 code 为 `"hanbingfreeapi"`
+- [x] WithOpenAIError / WithClaudeError 默认 type 值为 `"hanbingfreeapi"`
+- [x] middleware/utils.go, dto/claude.go, relay/common/override.go 中的旧 type 值已修复
+- [x] ⚠️ Relay 报错的 message 字段仍返回 `涵冰api-错误提示喵：HB-XXXXXXXX` 格式（HB码机制未被破坏）
+- [x] 全局搜索确认：仅 types/error.go 常量定义(29-35行)、service/error.go 注释(46行)、relay/common/override_test.go 测试文件残留旧值（均合理保留）

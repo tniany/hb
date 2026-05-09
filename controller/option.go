@@ -116,10 +116,7 @@ func UpdateOption(c *gin.Context) {
 	var option OptionUpdateRequest
 	err := common.DecodeJson(c.Request.Body, &option)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "无效的参数",
-		})
+		common.ApiErrorMsg(c, "无效的参数")
 		return
 	}
 	switch option.Value.(type) {

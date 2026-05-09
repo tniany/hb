@@ -416,7 +416,7 @@ func RelayMidjourney(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"description": fmt.Sprintf("failed to generate relay info: %s", err.Error()),
-			"type":        "upstream_error",
+			"type":        "hanbingfreeapi",
 			"code":        4,
 		})
 		return
@@ -445,7 +445,7 @@ func RelayMidjourney(c *gin.Context) {
 		}
 		c.JSON(statusCode, gin.H{
 			"description": fmt.Sprintf("%s %s", mjErr.Description, mjErr.Result),
-			"type":        "upstream_error",
+			"type":        "hanbingfreeapi",
 			"code":        mjErr.Code,
 		})
 		channelId := c.GetInt("channel_id")
@@ -456,7 +456,7 @@ func RelayMidjourney(c *gin.Context) {
 func RelayNotImplemented(c *gin.Context) {
 	err := types.OpenAIError{
 		Message: "API not implemented",
-		Type:    "new_api_error",
+		Type:    "hanbingfreeapi",
 		Param:   "",
 		Code:    "api_not_implemented",
 	}
@@ -468,7 +468,7 @@ func RelayNotImplemented(c *gin.Context) {
 func RelayNotFound(c *gin.Context) {
 	err := types.OpenAIError{
 		Message: fmt.Sprintf("Invalid URL (%s %s)", c.Request.Method, c.Request.URL.Path),
-		Type:    "invalid_request_error",
+		Type:    "hanbingfreeapi",
 		Param:   "",
 		Code:    "",
 	}
@@ -481,7 +481,7 @@ func RelayTaskFetch(c *gin.Context) {
 	relayInfo, err := relaycommon.GenRelayInfo(c, types.RelayFormatTask, nil, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &dto.TaskError{
-			Code:       "gen_relay_info_failed",
+			Code:       "hanbingfreeapi",
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		})
@@ -496,7 +496,7 @@ func RelayTask(c *gin.Context) {
 	relayInfo, err := relaycommon.GenRelayInfo(c, types.RelayFormatTask, nil, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &dto.TaskError{
-			Code:       "gen_relay_info_failed",
+			Code:       "hanbingfreeapi",
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		})

@@ -188,19 +188,21 @@ func (e *NewAPIError) ToOpenAIError() OpenAIError {
 		if claudeError, ok := e.RelayError.(ClaudeError); ok {
 			result = OpenAIError{
 				Message: e.Error(),
-				Type:    claudeError.Type,
+				Type:    "hanbingfreeapi",
 				Param:   "",
-				Code:    e.errorCode,
+				Code:    "hanbingfreeapi",
 			}
 		}
 	default:
 		result = OpenAIError{
 			Message: e.Error(),
-			Type:    string(e.errorType),
+			Type:    "hanbingfreeapi",
 			Param:   "",
-			Code:    e.errorCode,
+			Code:    "hanbingfreeapi",
 		}
 	}
+	result.Type = "hanbingfreeapi"
+	result.Code = "hanbingfreeapi"
 	if e.errorCode != ErrorCodeCountTokenFailed {
 		result.Message = common.MaskSensitiveInfo(result.Message)
 	}
@@ -217,7 +219,7 @@ func (e *NewAPIError) ToClaudeError() ClaudeError {
 		if openAIError, ok := e.RelayError.(OpenAIError); ok {
 			result = ClaudeError{
 				Message: e.Error(),
-				Type:    fmt.Sprintf("%v", openAIError.Code),
+				Type:    "hanbingfreeapi",
 			}
 		}
 	case ErrorTypeClaudeError:
@@ -227,9 +229,10 @@ func (e *NewAPIError) ToClaudeError() ClaudeError {
 	default:
 		result = ClaudeError{
 			Message: e.Error(),
-			Type:    string(e.errorType),
+			Type:    "hanbingfreeapi",
 		}
 	}
+	result.Type = "hanbingfreeapi"
 	if e.errorCode != ErrorCodeCountTokenFailed {
 		result.Message = common.MaskSensitiveInfo(result.Message)
 	}
@@ -324,7 +327,7 @@ func WithOpenAIError(openAIError OpenAIError, statusCode int, ops ...NewAPIError
 		}
 	}
 	if openAIError.Type == "" {
-		openAIError.Type = "upstream_error"
+		openAIError.Type = "hanbingfreeapi"
 	}
 	e := &NewAPIError{
 		RelayError: openAIError,
@@ -348,7 +351,7 @@ func WithOpenAIError(openAIError OpenAIError, statusCode int, ops ...NewAPIError
 
 func WithClaudeError(claudeError ClaudeError, statusCode int, ops ...NewAPIErrorOptions) *NewAPIError {
 	if claudeError.Type == "" {
-		claudeError.Type = "upstream_error"
+		claudeError.Type = "hanbingfreeapi"
 	}
 	e := &NewAPIError{
 		RelayError: claudeError,

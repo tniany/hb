@@ -276,7 +276,7 @@ func RetrieveModel(c *gin.Context, modelType int) {
 	} else {
 		openAIError := types.OpenAIError{
 			Message: fmt.Sprintf("The model '%s' does not exist", modelId),
-			Type:    "invalid_request_error",
+			Type:    "hanbingfreeapi",
 			Param:   "model",
 			Code:    "model_not_found",
 		}

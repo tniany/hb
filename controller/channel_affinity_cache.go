@@ -34,19 +34,13 @@ func ClearChannelAffinityCache(c *gin.Context) {
 	}
 
 	if ruleName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "缺少参数：rule_name，或使用 all=true 清空全部",
-		})
+		common.ApiErrorMsg(c, "缺少参数：rule_name，或使用 all=true 清空全部")
 		return
 	}
 
 	deleted, err := service.ClearChannelAffinityCacheByRuleName(ruleName)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		common.ApiErrorMsg(c, err.Error())
 		return
 	}
 
@@ -65,17 +59,11 @@ func GetChannelAffinityUsageCacheStats(c *gin.Context) {
 	keyFp := strings.TrimSpace(c.Query("key_fp"))
 
 	if ruleName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "missing param: rule_name",
-		})
+		common.ApiErrorMsg(c, "missing param: rule_name")
 		return
 	}
 	if keyFp == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "missing param: key_fp",
-		})
+		common.ApiErrorMsg(c, "missing param: key_fp")
 		return
 	}
 

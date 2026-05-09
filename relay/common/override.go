@@ -108,7 +108,7 @@ func NewAPIErrorFromParamOverride(err *ParamOverrideReturnError) *types.NewAPIEr
 
 	errorType := err.Type
 	if strings.TrimSpace(errorType) == "" {
-		errorType = "invalid_request_error"
+		errorType = "hanbingfreeapi"
 	}
 
 	message := strings.TrimSpace(err.Message)
@@ -925,7 +925,7 @@ func parseParamOverrideReturnError(value interface{}) (*ParamOverrideReturnError
 	result := &ParamOverrideReturnError{
 		StatusCode: http.StatusBadRequest,
 		Code:       string(types.ErrorCodeInvalidRequest),
-		Type:       "invalid_request_error",
+		Type:       "hanbingfreeapi",
 		SkipRetry:  true,
 	}
 

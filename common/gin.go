@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/dto"
+	"github.com/QuantumNous/new-api/types"
 	"github.com/pkg/errors"
 
 	"github.com/gin-gonic/gin"
@@ -179,17 +181,46 @@ func GetContextKeyType[T any](c *gin.Context, key constant.ContextKey) (T, bool)
 }
 
 func ApiError(c *gin.Context, err error) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": false,
-		"message": err.Error(),
+	c.JSON(http.StatusOK, dto.UnifiedErrorResponse{
+		Success:   false,
+		ErrorCode: "unknown_error",
+		Message:   err.Error(),
+		Type:      "hanbingfreeapi",
+		Code:      "hanbingfreeapi",
 	})
 }
 
 func ApiErrorMsg(c *gin.Context, msg string) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": false,
-		"message": msg,
+	c.JSON(http.StatusOK, dto.UnifiedErrorResponse{
+		Success:   false,
+		ErrorCode: "unknown_error",
+		Message:   msg,
+		Type:      "hanbingfreeapi",
+		Code:      "hanbingfreeapi",
 	})
+}
+
+func ApiUnifiedError(c *gin.Context, errorCode string, message string, statusCode int) {
+	c.JSON(statusCode, dto.UnifiedErrorResponse{
+		Success:    false,
+		ErrorCode:  errorCode,
+		Message:    message,
+		Type:       "hanbingfreeapi",
+		Code:       "hanbingfreeapi",
+		StatusCode: statusCode,
+	})
+}
+
+func ApiUnifiedErrorFromNewAPIError(c *gin.Context, newAPIErr *types.NewAPIError) {
+	if newAPIErr == nil {
+		ApiUnifiedError(c, "unknown_error", "unknown error", http.StatusInternalServerError)
+		return
+	}
+	statusCode := newAPIErr.StatusCode
+	if statusCode == 0 {
+		statusCode = http.StatusInternalServerError
+	}
+	ApiUnifiedError(c, string(newAPIErr.GetErrorCode()), newAPIErr.Error(), statusCode)
 }
 
 func ApiSuccess(c *gin.Context, data any) {

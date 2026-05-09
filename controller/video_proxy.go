@@ -33,7 +33,7 @@ func videoProxyError(c *gin.Context, status int, errType, message string) {
 func VideoProxy(c *gin.Context) {
 	taskID := c.Param("task_id")
 	if taskID == "" {
-		videoProxyError(c, http.StatusBadRequest, "invalid_request_error", "task_id is required")
+		videoProxyError(c, http.StatusBadRequest, "hanbingfreeapi", "task_id is required")
 		return
 	}
 
@@ -45,12 +45,12 @@ func VideoProxy(c *gin.Context) {
 		return
 	}
 	if !exists || task == nil {
-		videoProxyError(c, http.StatusNotFound, "invalid_request_error", "Task not found")
+		videoProxyError(c, http.StatusNotFound, "hanbingfreeapi", "Task not found")
 		return
 	}
 
 	if task.Status != model.TaskStatusSuccess {
-		videoProxyError(c, http.StatusBadRequest, "invalid_request_error",
+		videoProxyError(c, http.StatusBadRequest, "hanbingfreeapi",
 			fmt.Sprintf("Task is not completed yet, current status: %s", task.Status))
 		return
 	}

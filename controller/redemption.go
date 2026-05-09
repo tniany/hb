@@ -78,7 +78,7 @@ func AddRedemption(c *gin.Context) {
 		return
 	}
 	if valid, msg := validateExpiredTime(c, redemption.ExpiredTime); !valid {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": msg})
+		common.ApiErrorMsg(c, msg)
 		return
 	}
 	var keys []string
@@ -95,11 +95,7 @@ func AddRedemption(c *gin.Context) {
 		err = cleanRedemption.Insert()
 		if err != nil {
 			common.SysError("failed to insert redemption: " + err.Error())
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": i18n.T(c, i18n.MsgRedemptionCreateFailed),
-				"data":    keys,
-			})
+			common.ApiErrorMsg(c, i18n.T(c, i18n.MsgRedemptionCreateFailed))
 			return
 		}
 		keys = append(keys, key)
@@ -141,7 +137,7 @@ func UpdateRedemption(c *gin.Context) {
 	}
 	if statusOnly == "" {
 		if valid, msg := validateExpiredTime(c, redemption.ExpiredTime); !valid {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": msg})
+			common.ApiErrorMsg(c, msg)
 			return
 		}
 		// If you add more fields, please also update redemption.Update()
