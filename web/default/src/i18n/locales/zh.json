@@ -243,7 +243,7 @@
     "Allow upstream callbacks": "允许上游回调",
     "Allow users to check in daily for random quota rewards": "允许用户每日签到获取随机额度奖励",
     "Allow users to enter promo codes": "允许用户输入促销代码",
-    "Allow users to log in with password": "允许用户使用密码登录",
+    "Allow users to log in with password": "允许用户使用密码登录（管理员始终可以使用密码登录）",
     "Allow users to register and sign in with Passkey (WebAuthn)": "允许用户使用通行密钥 (WebAuthn) 注册和登录",
     "Allow users to sign in with Discord": "允许用户使用 Discord 登录",
     "Allow users to sign in with GitHub": "允许用户使用 GitHub 登录",
