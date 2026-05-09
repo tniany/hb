@@ -75,7 +75,7 @@ export function MaintenanceModeSection({
           <Switch
             checked={defaultValues.MaintenanceModeEnabled}
             onCheckedChange={(checked) =>
-              updateOption({
+              updateOption.mutate({
                 key: 'MaintenanceModeEnabled',
                 value: checked ? 'true' : 'false',
               })
