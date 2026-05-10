@@ -12,3 +12,29 @@ function generateErrorCode(): string {
 export function getCustomErrorMessage(): string {
   return `${ERROR_PREFIX}${generateErrorCode()}`
 }
+
+interface ErrorMessageOptions {
+  message?: string
+  status?: number
+  fallback?: string
+}
+
+const SENSITIVE_STATUSES = new Set([500, 502, 503])
+
+export function getErrorMessage(options: ErrorMessageOptions): string {
+  const { message, status, fallback } = options
+
+  if (message?.trim()) {
+    return message
+  }
+
+  if (!status) {
+    return fallback || getCustomErrorMessage()
+  }
+
+  if (SENSITIVE_STATUSES.has(status)) {
+    return getCustomErrorMessage()
+  }
+
+  return getCustomErrorMessage()
+}

@@ -12,10 +12,6 @@ interface MessageErrorProps {
   className?: string
 }
 
-/**
- * Display error messages using Alert component
- * Following ai-elements pattern for error handling
- */
 export function MessageError({ message, className = '' }: MessageErrorProps) {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.auth.user)

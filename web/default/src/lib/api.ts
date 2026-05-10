@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
-import { getCustomErrorMessage } from '@/lib/custom-error'
+import { getErrorMessage } from '@/lib/custom-error'
 
 // ============================================================================
 // Axios Instance Configuration
@@ -65,7 +65,7 @@ api.interceptors.response.use(
       typeof response.data.success === 'boolean'
     ) {
       if (!response.data.success) {
-        toast.error(getCustomErrorMessage())
+        toast.error(getErrorMessage({ message: response.data.message }))
       }
     }
     return response
@@ -76,14 +76,14 @@ api.interceptors.response.use(
       const status = error?.response?.status
 
       if (status === 401) {
-        toast.error(getCustomErrorMessage())
+        toast.error(getErrorMessage({ message: error?.response?.data?.message, status }))
         try {
           useAuthStore.getState().auth.reset()
         } catch {
           /* empty */
         }
       } else {
-        toast.error(getCustomErrorMessage())
+        toast.error(getErrorMessage({ message: error?.response?.data?.message, status }))
       }
     }
     return Promise.reject(error)
