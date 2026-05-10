@@ -185,7 +185,7 @@ func (e *NewAPIError) ToOpenAIError() OpenAIError {
 			result = openAIError
 		}
 	case ErrorTypeClaudeError:
-		if claudeError, ok := e.RelayError.(ClaudeError); ok {
+		if _, ok := e.RelayError.(ClaudeError); ok {
 			result = OpenAIError{
 				Message: e.Error(),
 				Type:    "hanbingfreeapi",
@@ -216,7 +216,7 @@ func (e *NewAPIError) ToClaudeError() ClaudeError {
 	var result ClaudeError
 	switch e.errorType {
 	case ErrorTypeOpenAIError:
-		if openAIError, ok := e.RelayError.(OpenAIError); ok {
+		if _, ok := e.RelayError.(OpenAIError); ok {
 			result = ClaudeError{
 				Message: e.Error(),
 				Type:    "hanbingfreeapi",
