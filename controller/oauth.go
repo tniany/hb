@@ -55,7 +55,6 @@ func HandleOAuth(c *gin.Context) {
 	state := c.Query("state")
 	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
 		common.ApiErrorMsg(c, i18n.T(c, i18n.MsgOAuthStateInvalid))
-		})
 		return
 	}
 
