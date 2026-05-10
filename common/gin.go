@@ -12,8 +12,6 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/types"
 	"github.com/pkg/errors"
 
 	"github.com/gin-gonic/gin"
@@ -180,8 +178,17 @@ func GetContextKeyType[T any](c *gin.Context, key constant.ContextKey) (T, bool)
 	return t, false
 }
 
+type UnifiedErrorResponse struct {
+	Success    bool   `json:"success"`
+	ErrorCode  string `json:"error_code"`
+	Message    string `json:"message"`
+	Type       string `json:"type"`
+	Code       string `json:"code"`
+	StatusCode int    `json:"status_code,omitempty"`
+}
+
 func ApiError(c *gin.Context, err error) {
-	c.JSON(http.StatusOK, dto.UnifiedErrorResponse{
+	c.JSON(http.StatusOK, UnifiedErrorResponse{
 		Success:   false,
 		ErrorCode: "unknown_error",
 		Message:   err.Error(),
@@ -191,7 +198,7 @@ func ApiError(c *gin.Context, err error) {
 }
 
 func ApiErrorMsg(c *gin.Context, msg string) {
-	c.JSON(http.StatusOK, dto.UnifiedErrorResponse{
+	c.JSON(http.StatusOK, UnifiedErrorResponse{
 		Success:   false,
 		ErrorCode: "unknown_error",
 		Message:   msg,
@@ -201,7 +208,7 @@ func ApiErrorMsg(c *gin.Context, msg string) {
 }
 
 func ApiUnifiedError(c *gin.Context, errorCode string, message string, statusCode int) {
-	c.JSON(statusCode, dto.UnifiedErrorResponse{
+	c.JSON(statusCode, UnifiedErrorResponse{
 		Success:    false,
 		ErrorCode:  errorCode,
 		Message:    message,
@@ -209,18 +216,6 @@ func ApiUnifiedError(c *gin.Context, errorCode string, message string, statusCod
 		Code:       "hanbingfreeapi",
 		StatusCode: statusCode,
 	})
-}
-
-func ApiUnifiedErrorFromNewAPIError(c *gin.Context, newAPIErr *types.NewAPIError) {
-	if newAPIErr == nil {
-		ApiUnifiedError(c, "unknown_error", "unknown error", http.StatusInternalServerError)
-		return
-	}
-	statusCode := newAPIErr.StatusCode
-	if statusCode == 0 {
-		statusCode = http.StatusInternalServerError
-	}
-	ApiUnifiedError(c, string(newAPIErr.GetErrorCode()), newAPIErr.Error(), statusCode)
 }
 
 func ApiSuccess(c *gin.Context, data any) {
