@@ -99,7 +99,7 @@ func OaiResponsesToChatStreamHandler(c *gin.Context, info *relaycommon.RelayInfo
 
 	responseId := helper.GetResponseID(c)
 	createAt := time.Now().Unix()
-	model := info.UpstreamModelName
+	model := info.ResponseModelName()
 
 	var (
 		usage       = &dto.Usage{}

@@ -28,6 +28,9 @@ func sendStreamData(c *gin.Context, info *relaycommon.RelayInfo, data string, fo
 	}
 
 	if !forceFormat && !thinkToContent {
+		if info.ResponseModelName() != info.UpstreamModelName {
+			data = replaceModelInJSON(data, info.UpstreamModelName, info.ResponseModelName())
+		}
 		return helper.StringData(c, data)
 	}
 
@@ -35,6 +38,7 @@ func sendStreamData(c *gin.Context, info *relaycommon.RelayInfo, data string, fo
 	if err := common.UnmarshalJsonStr(data, &lastStreamResponse); err != nil {
 		return err
 	}
+	lastStreamResponse.Model = info.ResponseModelName()
 
 	if !thinkToContent {
 		return helper.ObjectData(c, lastStreamResponse)
@@ -111,7 +115,7 @@ func OaiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 
 	defer service.CloseResponseBodyGracefully(resp)
 
-	model := info.UpstreamModelName
+	model := info.ResponseModelName()
 	var responseId string
 	var createAt int64 = 0
 	var systemFingerprint string
@@ -168,6 +172,7 @@ func OaiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 		&containStreamUsage, info, &shouldSendLastResp); err != nil {
 		logger.LogError(c, fmt.Sprintf("error handling last response: %s, lastStreamData: [%s]", err.Error(), lastStreamData))
 	}
+	model = info.ResponseModelName()
 
 	if info.RelayFormat == types.RelayFormatOpenAI {
 		if shouldSendLastResp {
@@ -223,6 +228,7 @@ func OpenaiHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respo
 	if err != nil {
 		return nil, types.NewOpenAIError(err, types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
 	}
+	simpleResponse.Model = info.ResponseModelName()
 
 	if oaiError := simpleResponse.GetOpenAIError(); oaiError != nil && oaiError.Type != "" {
 		return nil, types.WithOpenAIError(*oaiError, resp.StatusCode)
@@ -261,13 +267,19 @@ func OpenaiHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respo
 
 	switch info.RelayFormat {
 	case types.RelayFormatOpenAI:
-		if usageModified {
+		needReplaceModel := info.ResponseModelName() != info.UpstreamModelName
+		if usageModified || needReplaceModel {
 			var bodyMap map[string]interface{}
 			err = common.Unmarshal(responseBody, &bodyMap)
 			if err != nil {
 				return nil, types.NewOpenAIError(err, types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
 			}
-			bodyMap["usage"] = simpleResponse.Usage
+			if usageModified {
+				bodyMap["usage"] = simpleResponse.Usage
+			}
+			if needReplaceModel {
+				bodyMap["model"] = info.ResponseModelName()
+			}
 			responseBody, _ = common.Marshal(bodyMap)
 		}
 		if forceFormat {
@@ -715,4 +727,18 @@ func extractLlamaCachedTokensFromBody(body []byte) (int, bool) {
 		return 0, false
 	}
 	return *payload.Timings.CachedTokens, true
+}
+
+func replaceModelInJSON(data string, oldModel, newModel string) string {
+	var obj map[string]interface{}
+	if err := common.UnmarshalJsonStr(data, &obj); err != nil {
+		return data
+	}
+	if m, ok := obj["model"].(string); ok && m == oldModel {
+		obj["model"] = newModel
+		if b, err := common.Marshal(obj); err == nil {
+			return string(b)
+		}
+	}
+	return data
 }

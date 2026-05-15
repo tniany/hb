@@ -201,6 +201,7 @@ func (e *NewAPIError) ToOpenAIError() OpenAIError {
 			Code:    "hanbingfreeapi",
 		}
 	}
+	result.Message = e.Error()
 	result.Type = "hanbingfreeapi"
 	result.Code = "hanbingfreeapi"
 	if e.errorCode != ErrorCodeCountTokenFailed {
@@ -232,6 +233,7 @@ func (e *NewAPIError) ToClaudeError() ClaudeError {
 			Type:    "hanbingfreeapi",
 		}
 	}
+	result.Message = e.Error()
 	result.Type = "hanbingfreeapi"
 	if e.errorCode != ErrorCodeCountTokenFailed {
 		result.Message = common.MaskSensitiveInfo(result.Message)

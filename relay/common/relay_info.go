@@ -647,6 +647,13 @@ func (info *RelayInfo) GetEstimatePromptTokens() int {
 	return info.estimatePromptTokens
 }
 
+func (info *RelayInfo) ResponseModelName() string {
+	if info.OriginModelName != "" {
+		return info.OriginModelName
+	}
+	return info.UpstreamModelName
+}
+
 func (info *RelayInfo) SetFirstResponseTime() {
 	if info.isFirstResponse {
 		info.FirstResponseTime = time.Now()
