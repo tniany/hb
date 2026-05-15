@@ -61,22 +61,21 @@ export function Playground() {
   useEffect(() => {
     if (!groupsData) return
 
-    // Add auto group if not present
-    const hasAutoGroup = groupsData.some((g) => g.value === DEFAULT_GROUP)
-    const processedGroups = hasAutoGroup
-      ? groupsData
-      : [
-          {
-            value: DEFAULT_GROUP,
-            label: 'Auto',
-            ratio: 1,
-            desc: 'Circuit Breaker',
-          },
-          ...groupsData,
-        ]
+    // Filter out auto group
+    const filteredGroups = groupsData.filter((g) => g.value !== DEFAULT_GROUP)
 
-    setGroups(processedGroups)
-  }, [groupsData, setGroups])
+    setGroups(filteredGroups)
+
+    // If current group is auto or not in filtered list, select first available
+    if (
+      config.group === DEFAULT_GROUP ||
+      !filteredGroups.some((g) => g.value === config.group)
+    ) {
+      if (filteredGroups.length > 0) {
+        updateConfig('group', filteredGroups[0].value)
+      }
+    }
+  }, [groupsData, setGroups, config.group, updateConfig])
 
   const handleSendMessage = (text: string) => {
     const userMessage = createUserMessage(text)
