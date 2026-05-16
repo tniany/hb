@@ -487,12 +487,6 @@ func updateOptionMap(key string, value string) (err error) {
 		common.TelegramBotToken = value
 	case "TelegramBotName":
 		common.TelegramBotName = value
-	case "QQBotToken":
-		common.QQBotToken = value
-	case "QQGroupId":
-		common.QQGroupId = value
-	case "QQGroupName":
-		common.QQGroupName = value
 	case "TurnstileSiteKey":
 		common.TurnstileSiteKey = value
 	case "TurnstileSecretKey":

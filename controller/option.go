@@ -197,13 +197,6 @@ func UpdateOption(c *gin.Context) {
 		}
 	case "QQRegistrationEnabled":
 	case "QQGroupVerificationEnabled":
-		if option.Value == "true" && common.QQGroupId == "" {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "无法启用 QQ 群验证，请先填入 QQ 群 ID！",
-			})
-			return
-		}
 	case "theme.frontend":
 		if option.Value != "default" && option.Value != "classic" {
 			c.JSON(http.StatusOK, gin.H{

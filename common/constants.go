@@ -121,9 +121,6 @@ var TurnstileSecretKey = ""
 
 var TelegramBotToken = ""
 var TelegramBotName = ""
-var QQBotToken = ""
-var QQGroupId = ""
-var QQGroupName = ""
 
 var QuotaForNewUser = 0
 var QuotaForInviter = 0

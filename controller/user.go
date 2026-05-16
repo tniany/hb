@@ -241,7 +241,6 @@ func Register(c *gin.Context) {
 		qqNumber := strings.Split(user.Email, "@")[0]
 		qqToken := common.GenerateQQVerificationToken(insertedUser.Id, qqNumber)
 		response["qq_token"] = qqToken
-		response["qq_group_name"] = common.QQGroupName
 	}
 	c.JSON(http.StatusOK, response)
 	return

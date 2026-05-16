@@ -114,9 +114,6 @@ const AUTH_SECTIONS = [
         defaultValues={{
           QQRegistrationEnabled: settings.QQRegistrationEnabled,
           QQGroupVerificationEnabled: settings.QQGroupVerificationEnabled,
-          QQBotToken: settings.QQBotToken,
-          QQGroupId: settings.QQGroupId,
-          QQGroupName: settings.QQGroupName,
         }}
       />
     ),

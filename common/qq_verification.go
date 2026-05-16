@@ -17,7 +17,7 @@ type QQVerificationToken struct {
 
 var qqVerificationMutex sync.Mutex
 var qqVerificationMap map[string]*QQVerificationToken
-var QQVerificationValidMinutes = 10
+var QQVerificationValidMinutes = 5
 
 func GenerateQQVerificationToken(userId int, qqNumber string) string {
 	qqVerificationMutex.Lock()

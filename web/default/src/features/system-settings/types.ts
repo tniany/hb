@@ -112,9 +112,6 @@ export type AuthSettings = {
   'passkey.attachment_preference': '' | 'platform' | 'cross-platform'
   QQRegistrationEnabled: boolean
   QQGroupVerificationEnabled: boolean
-  QQBotToken: string
-  QQGroupId: string
-  QQGroupName: string
 }
 
 export type ContentSettings = {

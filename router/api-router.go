@@ -51,7 +51,7 @@ func SetApiRouter(router *gin.Engine) {
 			qqBotRoute := qqRoute.Group("/bot")
 			qqBotRoute.Use(middleware.AdminAuth())
 			{
-				qqBotRoute.POST("/report", controller.QQBotReportMessage)
+				qqBotRoute.POST("/verify", controller.QQBotVerifyToken)
 				qqBotRoute.GET("/query", controller.QQBotQueryToken)
 			}
 		}

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -13,41 +12,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type QQBotReportRequest struct {
-	QQNumber string `json:"qq_number"`
-	Message  string `json:"message"`
-	GroupId  string `json:"group_id"`
+type QQBotVerifyRequest struct {
+	Token      string `json:"token"`
+	QQNumber   string `json:"qq_number"`
+	QQNickname string `json:"qq_nickname"`
 }
 
-var qqTokenPattern = regexp.MustCompile(`qm-[a-zA-Z0-9]{8}`)
-
-func QQBotReportMessage(c *gin.Context) {
+func QQBotVerifyToken(c *gin.Context) {
 	if !common.QQGroupVerificationEnabled {
 		common.ApiErrorI18n(c, i18n.MsgFeatureDisabled)
 		return
 	}
 
-	var req QQBotReportRequest
+	var req QQBotVerifyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.ApiErrorI18n(c, i18n.MsgInvalidParams)
 		return
 	}
 
-	if req.QQNumber == "" || req.Message == "" {
+	if req.Token == "" || req.QQNumber == "" {
 		common.ApiErrorI18n(c, i18n.MsgInvalidParams)
 		return
 	}
 
-	token := qqTokenPattern.FindString(req.Message)
-	if token == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "no valid token found in message",
-		})
-		return
-	}
-
-	userId, err := common.VerifyQQToken(token, req.QQNumber)
+	userId, err := common.VerifyQQToken(req.Token, req.QQNumber)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -68,6 +56,9 @@ func QQBotReportMessage(c *gin.Context) {
 	}
 
 	user.QQId = req.QQNumber
+	if req.QQNickname != "" {
+		user.DisplayName = req.QQNickname
+	}
 	if err := user.Update(false); err != nil {
 		common.ApiErrorI18n(c, i18n.MsgDatabaseError)
 		return
@@ -77,8 +68,9 @@ func QQBotReportMessage(c *gin.Context) {
 		"success": true,
 		"message": "QQ binding completed successfully",
 		"data": gin.H{
-			"user_id":   userId,
-			"qq_number": req.QQNumber,
+			"user_id":      userId,
+			"qq_number":    req.QQNumber,
+			"display_name": user.DisplayName,
 		},
 	})
 }
@@ -170,9 +162,7 @@ func GetUserQQToken(c *gin.Context) {
 		"success": true,
 		"message": "",
 		"data": gin.H{
-			"token":         token,
-			"qq_group_name": common.QQGroupName,
-			"qq_group_id":   common.QQGroupId,
+			"token": token,
 		},
 	})
 }

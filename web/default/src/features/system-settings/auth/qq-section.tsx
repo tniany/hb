@@ -13,7 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { SettingsSection } from '../components/settings-section'
 import { useResetForm } from '../hooks/use-reset-form'
@@ -22,9 +21,6 @@ import { useUpdateOption } from '../hooks/use-update-option'
 const qqSchema = z.object({
   QQRegistrationEnabled: z.boolean(),
   QQGroupVerificationEnabled: z.boolean(),
-  QQBotToken: z.string(),
-  QQGroupId: z.string(),
-  QQGroupName: z.string(),
 })
 
 type QQFormValues = z.infer<typeof qqSchema>
@@ -114,61 +110,6 @@ export function QQSection({ defaultValues }: QQSectionProps) {
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='QQBotToken'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('QQ Bot Token')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type='password'
-                    placeholder={t('Your QQ Bot Token')}
-                    autoComplete='new-password'
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='QQGroupId'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('QQ Group ID')}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={t('Your QQ Group ID')}
-                    autoComplete='off'
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='QQGroupName'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('QQ Group Name')}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={t('Your QQ Group Name')}
-                    autoComplete='off'
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
