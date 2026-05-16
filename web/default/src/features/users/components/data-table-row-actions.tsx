@@ -109,7 +109,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     }
   }
 
-  const isDisabled = user.status === USER_STATUS.DISABLED
+  const isDisabled = user.status === USER_STATUS.DISABLED || user.status === USER_STATUS.UNVERIFIED
   const isAdmin = user.role >= USER_ROLE.ADMIN
   const isRoot = user.role === USER_ROLE.ROOT
 

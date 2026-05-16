@@ -11,6 +11,7 @@ var (
 var (
 	ErrInvalidCredentials   = errors.New("invalid credentials")
 	ErrUserEmptyCredentials = errors.New("empty credentials")
+	ErrUserUnverified       = errors.New("user unverified, please complete QQ group verification")
 )
 
 // Token auth errors

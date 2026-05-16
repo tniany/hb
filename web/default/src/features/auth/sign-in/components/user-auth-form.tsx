@@ -34,7 +34,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/password-input'
 import { Turnstile } from '@/components/turnstile'
-import { login, wechatLoginByCode } from '@/features/auth/api'
+import { login, wechatLoginByCode, getQQVerificationToken } from '@/features/auth/api'
 import { LegalConsent } from '@/features/auth/components/legal-consent'
 import { OAuthProviders } from '@/features/auth/components/oauth-providers'
 import { loginFormSchema } from '@/features/auth/constants'
@@ -56,6 +56,9 @@ export function UserAuthForm({
   const [isPasskeyLoading, setIsPasskeyLoading] = useState(false)
   const [isWeChatDialogOpen, setIsWeChatDialogOpen] = useState(false)
   const [isWeChatSubmitting, setIsWeChatSubmitting] = useState(false)
+  const [qqTokenInfo, setQqTokenInfo] = useState<{
+    qq_token: string
+  } | null>(null)
   const legalConsentErrorMessage = t('Please agree to the legal terms first')
   const loginFailedMessage = t('Login failed')
 
@@ -134,6 +137,18 @@ export function UserAuthForm({
       })
 
       if (res.success) {
+        if (
+          (res.data as Record<string, unknown>)?.require_qq_verification
+        ) {
+          const tokenData = res.data as Record<string, unknown>
+          if (tokenData.qq_token) {
+            setQqTokenInfo({
+              qq_token: tokenData.qq_token as string,
+            })
+          }
+          return
+        }
+
         if (res.data?.require_2fa) {
           redirectTo2FA()
           return
@@ -425,6 +440,55 @@ export function UserAuthForm({
                   <Loader2 className='h-4 w-4 animate-spin' />
                 ) : null}
                 {t('Confirm')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {qqTokenInfo && (
+        <Dialog
+          open={!!qqTokenInfo}
+          onOpenChange={(open) => {
+            if (!open) {
+              setQqTokenInfo(null)
+            }
+          }}
+        >
+          <DialogContent className='max-w-sm'>
+            <DialogHeader className='text-left'>
+              <DialogTitle>
+                {t('QQ Group Verification Required')}
+              </DialogTitle>
+              <DialogDescription>
+                {t(
+                  'Please complete QQ group verification to activate your account.'
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className='grid gap-3'>
+              <div className='grid gap-1'>
+                <Label>{t('Verification Token')}</Label>
+                <code className='bg-muted rounded-md px-3 py-2 font-mono text-sm'>
+                  {qqTokenInfo.qq_token}
+                </code>
+              </div>
+              <p className='text-muted-foreground text-sm'>
+                {t(
+                  'Please send the token above in the QQ group. The token is valid for 5 minutes. Your QQ number must match the registered email.'
+                )}
+              </p>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type='button'
+                onClick={() => {
+                  setQqTokenInfo(null)
+                }}
+              >
+                {t('I have completed verification')}
               </Button>
             </DialogFooter>
           </DialogContent>

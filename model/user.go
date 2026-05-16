@@ -611,8 +611,14 @@ func (user *User) ValidateAndFill() (err error) {
 		return fmt.Errorf("%w: %v", ErrDatabase, err)
 	}
 	okay := common.ValidatePasswordAndHash(password, user.Password)
-	if !okay || user.Status != common.UserStatusEnabled {
+	if !okay {
 		return ErrInvalidCredentials
+	}
+	if user.Status == common.UserStatusDisabled {
+		return ErrInvalidCredentials
+	}
+	if user.Status == common.UserStatusUnverified {
+		return ErrUserUnverified
 	}
 	return nil
 }

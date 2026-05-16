@@ -65,8 +65,23 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if user.Status == common.UserStatusDisabled && common.QQGroupVerificationEnabled {
-		common.ApiErrorI18n(c, i18n.MsgUserQQVerificationPending)
+	if user.Status == common.UserStatusUnverified && common.QQGroupVerificationEnabled {
+		qqToken := ""
+		qqNumber := ""
+		if user.Email != "" && strings.HasSuffix(user.Email, "@qq.com") {
+			qqNumber = strings.TrimSuffix(user.Email, "@qq.com")
+			if qqNumber != "" {
+				qqToken = common.GenerateQQVerificationToken(user.Id, qqNumber)
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "",
+			"data": gin.H{
+				"require_qq_verification": true,
+				"qq_token":                qqToken,
+			},
+		})
 		return
 	}
 
@@ -197,7 +212,7 @@ func Register(c *gin.Context) {
 		Status:      common.UserStatusEnabled,
 	}
 	if common.QQGroupVerificationEnabled && strings.HasSuffix(strings.ToLower(user.Email), "@qq.com") {
-		cleanUser.Status = common.UserStatusDisabled
+		cleanUser.Status = common.UserStatusUnverified
 	}
 	if common.EmailVerificationEnabled {
 		cleanUser.Email = user.Email

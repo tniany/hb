@@ -4022,6 +4022,7 @@
     "Your verification token": "您的验证令牌",
     "Token is valid for 5 minutes. QQ number must match your registered email.": "令牌有效期5分钟，QQ号须与注册邮箱一致。",
     "I understand": "我知道了",
+    "I have completed verification": "我已完成验证",
     "Registration successful! Please complete QQ group verification.": "注册成功！请完成QQ群验证。",
     "QQ registration is enabled, please use a numeric QQ email (e.g., 123456789@qq.com)": "已启用QQ注册，请使用纯数字QQ邮箱（如 123456789@qq.com）",
     "Please enter your QQ email first": "请先输入QQ邮箱"
