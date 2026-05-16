@@ -81,6 +81,11 @@ export async function wechatLoginByCode(code: string): Promise<ApiResponse> {
   return res.data
 }
 
+export async function getQQVerificationToken(): Promise<ApiResponse> {
+  const res = await api.get('/api/user/qq/token')
+  return res.data
+}
+
 // ----------------------------------------------------------------------------
 // Registration
 // ----------------------------------------------------------------------------

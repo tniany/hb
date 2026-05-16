@@ -45,6 +45,17 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/oauth/telegram/bind", middleware.CriticalRateLimit(), controller.TelegramBind)
 		// Standard OAuth providers (GitHub, Discord, OIDC, LinuxDO) - unified route
 		apiRouter.GET("/oauth/:provider", middleware.CriticalRateLimit(), controller.HandleOAuth)
+
+		qqRoute := apiRouter.Group("/qq")
+		{
+			qqBotRoute := qqRoute.Group("/bot")
+			qqBotRoute.Use(middleware.AdminAuth())
+			{
+				qqBotRoute.POST("/report", controller.QQBotReportMessage)
+				qqBotRoute.GET("/query", controller.QQBotQueryToken)
+			}
+		}
+
 		apiRouter.GET("/ratio_config", middleware.CriticalRateLimit(), controller.GetRatioConfig)
 
 		apiRouter.POST("/stripe/webhook", controller.StripeWebhook)
@@ -113,6 +124,7 @@ func SetApiRouter(router *gin.Engine) {
 				// Custom OAuth bindings
 				selfRoute.GET("/oauth/bindings", controller.GetUserOAuthBindings)
 				selfRoute.DELETE("/oauth/bindings/:provider_id", controller.UnbindCustomOAuth)
+				selfRoute.GET("/qq/token", controller.GetUserQQToken)
 			}
 
 			adminRoute := userRoute.Group("/")

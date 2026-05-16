@@ -81,6 +81,13 @@ export function SignUpForm({
 
   const emailValue = form.watch('email')
   const emailVerificationRequired = !!status?.email_verification
+  const qqRegistration = Boolean(
+    status?.qq_registration ?? status?.data?.qq_registration
+  )
+  const qqGroupVerification = Boolean(
+    status?.qq_group_verification ?? status?.data?.qq_group_verification
+  )
+  const showEmailField = emailVerificationRequired || qqRegistration
   const hasUserAgreement = Boolean(status?.user_agreement_enabled)
   const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
   const requiresLegalConsent = hasUserAgreement || hasPrivacyPolicy
@@ -89,6 +96,10 @@ export function SignUpForm({
     status?.data?.oauth_register_enabled ??
     true
   const hasWeChatLogin = Boolean(status?.wechat_login)
+  const [qqTokenInfo, setQqTokenInfo] = useState<{
+    qq_token: string
+    qq_group_name: string
+  } | null>(null)
 
   const wechatQrCodeUrl = useMemo(() => {
     return (
@@ -118,7 +129,17 @@ export function SignUpForm({
       return
     }
 
-    // Validate email verification if required
+    if (qqRegistration) {
+      if (!data.email) {
+        toast.error(t('Please enter your QQ email'))
+        return
+      }
+      if (!/^[0-9]+@qq\.com$/i.test(data.email)) {
+        toast.error(t('Please enter a valid QQ email (numbers@qq.com)'))
+        return
+      }
+    }
+
     if (emailVerificationRequired) {
       if (!data.email) {
         toast.error(t('Please enter your email'))
@@ -142,8 +163,20 @@ export function SignUpForm({
       })
 
       if (res?.success) {
-        toast.success(t('Account created! Please sign in'))
-        redirectToLogin()
+        const extra = res as Record<string, unknown>
+        if (
+          qqGroupVerification &&
+          extra.qq_token &&
+          extra.qq_group_name
+        ) {
+          setQqTokenInfo({
+            qq_token: extra.qq_token as string,
+            qq_group_name: extra.qq_group_name as string,
+          })
+        } else {
+          toast.success(t('Account created! Please sign in'))
+          redirectToLogin()
+        }
       }
     } catch (_error) {
       // Errors are handled by global interceptor
@@ -251,21 +284,23 @@ export function SignUpForm({
           )}
         />
 
-        {/* Email Verification Section */}
-        {emailVerificationRequired && (
+        {showEmailField && (
           <>
-            {/* Email Field */}
             <FormField
               control={form.control}
               name='email'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t('Email (required for verification)')}
+                    {qqRegistration
+                      ? t('QQ Email')
+                      : t('Email (required for verification)')}
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={t('name@example.com')}
+                      placeholder={
+                        qqRegistration ? '123456789@qq.com' : t('name@example.com')
+                      }
                       type='email'
                       {...field}
                     />
@@ -275,39 +310,41 @@ export function SignUpForm({
               )}
             />
 
-            {/* Verification Code Field */}
-            <div className='flex items-end gap-2'>
-              <div className='flex-1'>
-                <Input
-                  placeholder={t('Verification code')}
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                />
-              </div>
-              <Button
-                variant='outline'
-                type='button'
-                disabled={isLoading || isSendingCode || isActive || !emailValue}
-                onClick={handleSendVerificationCode}
-              >
-                {isActive ? (
-                  t('Resend ({{seconds}}s)', { seconds: secondsLeft })
-                ) : isSendingCode ? (
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                ) : (
-                  t('Send code')
-                )}
-              </Button>
-            </div>
+            {emailVerificationRequired && (
+              <>
+                <div className='flex items-end gap-2'>
+                  <div className='flex-1'>
+                    <Input
+                      placeholder={t('Verification code')}
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    variant='outline'
+                    type='button'
+                    disabled={isLoading || isSendingCode || isActive || !emailValue}
+                    onClick={handleSendVerificationCode}
+                  >
+                    {isActive ? (
+                      t('Resend ({{seconds}}s)', { seconds: secondsLeft })
+                    ) : isSendingCode ? (
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                    ) : (
+                      t('Send code')
+                    )}
+                  </Button>
+                </div>
 
-            {/* Turnstile */}
-            {isTurnstileEnabled && (
-              <div className='mt-2'>
-                <Turnstile
-                  siteKey={turnstileSiteKey}
-                  onVerify={setTurnstileToken}
-                />
-              </div>
+                {isTurnstileEnabled && (
+                  <div className='mt-2'>
+                    <Turnstile
+                      siteKey={turnstileSiteKey}
+                      onVerify={setTurnstileToken}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -402,6 +439,65 @@ export function SignUpForm({
                   <Loader2 className='h-4 w-4 animate-spin' />
                 ) : null}
                 {t('Confirm')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {qqTokenInfo && (
+        <Dialog
+          open={!!qqTokenInfo}
+          onOpenChange={(open) => {
+            if (!open) {
+              setQqTokenInfo(null)
+              toast.success(t('Account created! Please sign in'))
+              redirectToLogin()
+            }
+          }}
+        >
+          <DialogContent className='max-w-sm'>
+            <DialogHeader className='text-left'>
+              <DialogTitle>
+                {t('QQ Group Verification Required')}
+              </DialogTitle>
+              <DialogDescription>
+                {t(
+                  'Please complete QQ group verification to activate your account.'
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className='grid gap-3'>
+              <div className='grid gap-1'>
+                <Label>{t('QQ Group')}</Label>
+                <p className='text-sm font-medium'>
+                  {qqTokenInfo.qq_group_name}
+                </p>
+              </div>
+              <div className='grid gap-1'>
+                <Label>{t('Verification Token')}</Label>
+                <code className='bg-muted rounded-md px-3 py-2 font-mono text-sm'>
+                  {qqTokenInfo.qq_token}
+                </code>
+              </div>
+              <p className='text-muted-foreground text-sm'>
+                {t(
+                  'Please send the token above in the QQ group. The token is valid for 10 minutes. Your QQ number must match the registered email.'
+                )}
+              </p>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type='button'
+                onClick={() => {
+                  setQqTokenInfo(null)
+                  toast.success(t('Account created! Please sign in'))
+                  redirectToLogin()
+                }}
+              >
+                {t('I understand')}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -110,6 +110,11 @@ export type AuthSettings = {
   'passkey.allow_insecure_origin': boolean
   'passkey.user_verification': 'required' | 'preferred' | 'discouraged'
   'passkey.attachment_preference': '' | 'platform' | 'cross-platform'
+  QQRegistrationEnabled: boolean
+  QQGroupVerificationEnabled: boolean
+  QQBotToken: string
+  QQGroupId: string
+  QQGroupName: string
 }
 
 export type ContentSettings = {

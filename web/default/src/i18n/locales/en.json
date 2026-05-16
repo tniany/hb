@@ -3945,6 +3945,27 @@
     "Your Turnstile site key": "Your Turnstile site key",
     "Zhipu": "Zhipu",
     "Zhipu V4": "Zhipu V4",
-    "Zoom": "Zoom"
+    "Zoom": "Zoom",
+    "QQ Registration": "QQ Registration",
+    "Configure QQ email registration and QQ group verification": "Configure QQ email registration and QQ group verification",
+    "Enable QQ Registration": "Enable QQ Registration",
+    "Allow users to register with numeric QQ email (e.g., 123456789@qq.com)": "Allow users to register with numeric QQ email (e.g., 123456789@qq.com)",
+    "Enable QQ Group Verification": "Enable QQ Group Verification",
+    "Require users to verify via QQ group after registration": "Require users to verify via QQ group after registration",
+    "QQ Bot Token": "QQ Bot Token",
+    "Your QQ Bot Token": "Your QQ Bot Token",
+    "QQ Group ID": "QQ Group ID",
+    "Your QQ Group ID": "Your QQ Group ID",
+    "QQ Group Name": "QQ Group Name",
+    "Your QQ Group Name": "Your QQ Group Name",
+    "QQ Email": "QQ Email",
+    "QQ Group Verification Required": "QQ Group Verification Required",
+    "Please send the following token in QQ group \"{{groupName}}\" to complete verification": "Please send the following token in QQ group \"{{groupName}}\" to complete verification",
+    "Your verification token": "Your verification token",
+    "Token is valid for 10 minutes. QQ number must match your registered email.": "Token is valid for 10 minutes. QQ number must match your registered email.",
+    "I understand": "I understand",
+    "Registration successful! Please complete QQ group verification.": "Registration successful! Please complete QQ group verification.",
+    "QQ registration is enabled, please use a numeric QQ email (e.g., 123456789@qq.com)": "QQ registration is enabled, please use a numeric QQ email (e.g., 123456789@qq.com)",
+    "Please enter your QQ email first": "Please enter your QQ email first"
   }
 }

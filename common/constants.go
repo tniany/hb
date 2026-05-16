@@ -67,6 +67,8 @@ var GitHubOAuthEnabled = false
 var LinuxDOOAuthEnabled = false
 var WeChatAuthEnabled = false
 var TelegramOAuthEnabled = false
+var QQRegistrationEnabled = false
+var QQGroupVerificationEnabled = false
 var TurnstileCheckEnabled = false
 var RegisterEnabled = true
 
@@ -119,6 +121,9 @@ var TurnstileSecretKey = ""
 
 var TelegramBotToken = ""
 var TelegramBotName = ""
+var QQBotToken = ""
+var QQGroupId = ""
+var QQGroupName = ""
 
 var QuotaForNewUser = 0
 var QuotaForInviter = 0

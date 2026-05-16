@@ -5,6 +5,7 @@ import { BotProtectionSection } from './bot-protection-section'
 import { CustomOAuthSection } from './custom-oauth/custom-oauth-section'
 import { OAuthSection } from './oauth-section'
 import { PasskeySection } from './passkey-section'
+import { QQSection } from './qq-section'
 
 const AUTH_SECTIONS = [
   {
@@ -100,6 +101,22 @@ const AUTH_SECTIONS = [
           TurnstileCheckEnabled: settings.TurnstileCheckEnabled,
           TurnstileSiteKey: settings.TurnstileSiteKey,
           TurnstileSecretKey: settings.TurnstileSecretKey,
+        }}
+      />
+    ),
+  },
+  {
+    id: 'qq',
+    titleKey: 'QQ Registration',
+    descriptionKey: 'Configure QQ email registration and QQ group verification',
+    build: (settings: AuthSettings) => (
+      <QQSection
+        defaultValues={{
+          QQRegistrationEnabled: settings.QQRegistrationEnabled,
+          QQGroupVerificationEnabled: settings.QQGroupVerificationEnabled,
+          QQBotToken: settings.QQBotToken,
+          QQGroupId: settings.QQGroupId,
+          QQGroupName: settings.QQGroupName,
         }}
       />
     ),

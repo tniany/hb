@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -163,6 +164,13 @@ func Register(c *gin.Context) {
 			return
 		}
 	}
+	if common.QQRegistrationEnabled {
+		qqRegex := regexp.MustCompile(`(?i)^[0-9]+@qq\.com$`)
+		if !qqRegex.MatchString(user.Email) {
+			common.ApiErrorMsg(c, "QQ registration is enabled, please use a numeric QQ email (e.g., 123456789@qq.com)")
+			return
+		}
+	}
 	exist, err := model.CheckUserExistOrDeleted(user.Username, user.Email)
 	if err != nil {
 		common.ApiErrorI18n(c, i18n.MsgDatabaseError)
@@ -225,10 +233,17 @@ func Register(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	response := gin.H{
 		"success": true,
 		"message": "",
-	})
+	}
+	if common.QQGroupVerificationEnabled && strings.HasSuffix(strings.ToLower(user.Email), "@qq.com") {
+		qqNumber := strings.Split(user.Email, "@")[0]
+		qqToken := common.GenerateQQVerificationToken(insertedUser.Id, qqNumber)
+		response["qq_token"] = qqToken
+		response["qq_group_name"] = common.QQGroupName
+	}
+	c.JSON(http.StatusOK, response)
 	return
 }
 
