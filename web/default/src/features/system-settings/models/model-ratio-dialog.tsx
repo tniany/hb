@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as z from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { TieredPricingEditor } from './tiered-pricing-editor'
+import { PricePreview } from './price-preview'
 
 const createModelDialogSchema = (t: (key: string) => string) =>
   z.object({
@@ -102,6 +103,12 @@ export function ModelRatioDialog({
       audioCompletionRatio: '',
     },
   })
+
+  const watchedRatio = useWatch({ control: form.control, name: 'ratio' })
+  const watchedCompletionRatio = useWatch({ control: form.control, name: 'completionRatio' })
+  const watchedCacheRatio = useWatch({ control: form.control, name: 'cacheRatio' })
+  const watchedCreateCacheRatio = useWatch({ control: form.control, name: 'createCacheRatio' })
+  const watchedPrice = useWatch({ control: form.control, name: 'price' })
 
   useEffect(() => {
     if (editData) {
@@ -272,6 +279,17 @@ export function ModelRatioDialog({
                 </div>
               </RadioGroup>
             </div>
+
+            {pricingMode !== 'tiered_expr' && (
+              <PricePreview
+                modelRatio={watchedRatio}
+                completionRatio={watchedCompletionRatio}
+                cacheRatio={watchedCacheRatio}
+                createCacheRatio={watchedCreateCacheRatio}
+                modelPrice={watchedPrice}
+                quotaType={pricingMode === 'per-request' ? 1 : 0}
+              />
+            )}
 
             {pricingMode === 'tiered_expr' ? (
               <TieredPricingEditor

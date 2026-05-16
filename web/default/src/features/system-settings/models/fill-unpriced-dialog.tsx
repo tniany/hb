@@ -16,6 +16,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { PricePreview } from './price-preview'
 import type { PricingData } from '@/features/pricing/types'
 
 function parseJsonMap(json: string): Record<string, number> {
@@ -33,6 +41,8 @@ function parseJsonMap(json: string): Record<string, number> {
   return {}
 }
 
+type BillingModeOption = 'per-token' | 'per-request'
+
 type FillUnpricedDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -49,9 +59,11 @@ export function FillUnpricedDialog({
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set())
+  const [billingMode, setBillingMode] = useState<BillingModeOption>('per-token')
   const [defaultRatio, setDefaultRatio] = useState('1')
   const [defaultCompletion, setDefaultCompletion] = useState('1')
   const [defaultCache, setDefaultCache] = useState('1')
+  const [defaultPrice, setDefaultPrice] = useState('')
 
   const { data: pricingData, isLoading } = useQuery({
     queryKey: ['pricing-all-models'],
@@ -123,24 +135,53 @@ export function FillUnpricedDialog({
 
   const handleConfirm = () => {
     if (selectedModels.size === 0) return
-    const ratioNum = parseFloat(defaultRatio)
-    const completionNum = parseFloat(defaultCompletion)
-    const cacheNum = parseFloat(defaultCache)
-    const modelRatio = parseJsonMap(currentRatios.ModelRatio || '{}')
-    const completionRatio = parseJsonMap(currentRatios.CompletionRatio || '{}')
-    const cacheRatio = parseJsonMap(currentRatios.CacheRatio || '{}')
 
-    for (const name of selectedModels) {
-      if (!isNaN(ratioNum)) modelRatio[name] = ratioNum
-      if (!isNaN(completionNum)) completionRatio[name] = completionNum
-      if (!isNaN(cacheNum)) cacheRatio[name] = cacheNum
+    const updates: Record<string, string> = {}
+
+    if (billingMode === 'per-request') {
+      const priceNum = parseFloat(defaultPrice)
+      const modelPrice = parseJsonMap(currentRatios.ModelPrice || '{}')
+      const modelRatio = parseJsonMap(currentRatios.ModelRatio || '{}')
+      const completionRatio = parseJsonMap(currentRatios.CompletionRatio || '{}')
+      const cacheRatio = parseJsonMap(currentRatios.CacheRatio || '{}')
+      const createCacheRatio = parseJsonMap(currentRatios.CreateCacheRatio || '{}')
+
+      for (const name of selectedModels) {
+        if (!isNaN(priceNum)) modelPrice[name] = priceNum
+        delete modelRatio[name]
+        delete completionRatio[name]
+        delete cacheRatio[name]
+        delete createCacheRatio[name]
+      }
+
+      updates['ModelPrice'] = JSON.stringify(modelPrice)
+      updates['ModelRatio'] = JSON.stringify(modelRatio)
+      updates['CompletionRatio'] = JSON.stringify(completionRatio)
+      updates['CacheRatio'] = JSON.stringify(cacheRatio)
+      updates['CreateCacheRatio'] = JSON.stringify(createCacheRatio)
+    } else {
+      const ratioNum = parseFloat(defaultRatio)
+      const completionNum = parseFloat(defaultCompletion)
+      const cacheNum = parseFloat(defaultCache)
+      const modelPrice = parseJsonMap(currentRatios.ModelPrice || '{}')
+      const modelRatio = parseJsonMap(currentRatios.ModelRatio || '{}')
+      const completionRatio = parseJsonMap(currentRatios.CompletionRatio || '{}')
+      const cacheRatio = parseJsonMap(currentRatios.CacheRatio || '{}')
+
+      for (const name of selectedModels) {
+        delete modelPrice[name]
+        if (!isNaN(ratioNum)) modelRatio[name] = ratioNum
+        if (!isNaN(completionNum)) completionRatio[name] = completionNum
+        if (!isNaN(cacheNum)) cacheRatio[name] = cacheNum
+      }
+
+      updates['ModelPrice'] = JSON.stringify(modelPrice)
+      updates['ModelRatio'] = JSON.stringify(modelRatio)
+      updates['CompletionRatio'] = JSON.stringify(completionRatio)
+      updates['CacheRatio'] = JSON.stringify(cacheRatio)
     }
 
-    onSave({
-      ModelRatio: JSON.stringify(modelRatio),
-      CompletionRatio: JSON.stringify(completionRatio),
-      CacheRatio: JSON.stringify(cacheRatio),
-    })
+    onSave(updates)
   }
 
   return (
@@ -157,35 +198,79 @@ export function FillUnpricedDialog({
         </DialogHeader>
 
         <div className='space-y-4'>
-          <div className='grid grid-cols-3 gap-3'>
-            <div>
-              <Label className='text-xs'>{t('Default Model Ratio')}</Label>
-              <Input
-                type='number'
-                value={defaultRatio}
-                onChange={(e) => setDefaultRatio(e.target.value)}
-                className='mt-1 h-8'
-              />
-            </div>
-            <div>
-              <Label className='text-xs'>{t('Default Completion Ratio')}</Label>
-              <Input
-                type='number'
-                value={defaultCompletion}
-                onChange={(e) => setDefaultCompletion(e.target.value)}
-                className='mt-1 h-8'
-              />
-            </div>
-            <div>
-              <Label className='text-xs'>{t('Default Cache Ratio')}</Label>
-              <Input
-                type='number'
-                value={defaultCache}
-                onChange={(e) => setDefaultCache(e.target.value)}
-                className='mt-1 h-8'
-              />
-            </div>
+          <div className='space-y-2'>
+            <Label className='text-sm'>{t('Billing Mode')}</Label>
+            <Select value={billingMode} onValueChange={(v) => setBillingMode(v as BillingModeOption)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='per-token'>{t('Per-token (ratio based)')}</SelectItem>
+                <SelectItem value='per-request'>{t('Per-request (fixed price)')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {billingMode === 'per-request' ? (
+            <>
+              <div>
+                <Label className='text-xs'>{t('Default Fixed Price (USD)')}</Label>
+                <Input
+                  type='number'
+                  value={defaultPrice}
+                  onChange={(e) => setDefaultPrice(e.target.value)}
+                  placeholder='0.01'
+                  className='mt-1 h-8'
+                />
+              </div>
+              {defaultPrice && !isNaN(parseFloat(defaultPrice)) && (
+                <PricePreview
+                  modelPrice={defaultPrice}
+                  quotaType={1}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <div className='grid grid-cols-3 gap-3'>
+                <div>
+                  <Label className='text-xs'>{t('Default Model Ratio')}</Label>
+                  <Input
+                    type='number'
+                    value={defaultRatio}
+                    onChange={(e) => setDefaultRatio(e.target.value)}
+                    className='mt-1 h-8'
+                  />
+                </div>
+                <div>
+                  <Label className='text-xs'>{t('Default Completion Ratio')}</Label>
+                  <Input
+                    type='number'
+                    value={defaultCompletion}
+                    onChange={(e) => setDefaultCompletion(e.target.value)}
+                    className='mt-1 h-8'
+                  />
+                </div>
+                <div>
+                  <Label className='text-xs'>{t('Default Cache Ratio')}</Label>
+                  <Input
+                    type='number'
+                    value={defaultCache}
+                    onChange={(e) => setDefaultCache(e.target.value)}
+                    className='mt-1 h-8'
+                  />
+                </div>
+              </div>
+              {defaultRatio && !isNaN(parseFloat(defaultRatio)) && (
+                <PricePreview
+                  modelRatio={defaultRatio}
+                  completionRatio={defaultCompletion}
+                  cacheRatio={defaultCache}
+                  quotaType={0}
+                />
+              )}
+            </>
+          )}
 
           <div>
             <div className='relative'>

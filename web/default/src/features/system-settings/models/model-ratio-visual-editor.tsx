@@ -32,6 +32,7 @@ import {
   combineBillingExpr,
   splitBillingExprAndRequestRules,
 } from '@/features/pricing/lib/billing-expr'
+import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { safeJsonParse } from '../utils/json-parser'
 import { ModelRatioDialog, type ModelRatioData } from './model-ratio-dialog'
 import { BatchPricingDialog } from './batch-pricing-dialog'
@@ -476,17 +477,23 @@ export const ModelRatioVisualEditor = memo(
           header: ({ column }) => (
             <DataTableColumnHeader column={column} title={t('Fixed price')} />
           ),
-          cell: ({ row }) => (
-            <span
-              className={
-                row.original.billingMode === 'tiered_expr'
-                  ? 'text-muted-foreground'
-                  : ''
-              }
-            >
-              {formatValue(row.getValue('price'))}
-            </span>
-          ),
+          cell: ({ row }) => {
+            const price = row.getValue('price') as string
+            if (!price || price === '' || row.original.billingMode === 'tiered_expr') {
+              return <span className='text-muted-foreground'>{formatValue(price)}</span>
+            }
+            const numPrice = parseFloat(price)
+            return (
+              <div className='flex flex-col'>
+                <span>{formatValue(price)}</span>
+                {Number.isFinite(numPrice) && (
+                  <span className='text-xs text-muted-foreground'>
+                    {formatBillingCurrencyFromUSD(numPrice, { digitsLarge: 4, digitsSmall: 6 })}
+                  </span>
+                )}
+              </div>
+            )
+          },
           meta: { label: 'Fixed price' },
         },
         {
@@ -494,11 +501,23 @@ export const ModelRatioVisualEditor = memo(
           header: ({ column }) => (
             <DataTableColumnHeader column={column} title={t('Ratio')} />
           ),
-          cell: ({ row }) => (
-            <span className={fallbackClass(row.original)}>
-              {formatValue(row.getValue('ratio'))}
-            </span>
-          ),
+          cell: ({ row }) => {
+            const ratio = row.getValue('ratio') as string
+            if (!ratio || ratio === '' || isFallbackRow(row.original)) {
+              return <span className={fallbackClass(row.original)}>{formatValue(ratio)}</span>
+            }
+            const numRatio = parseFloat(ratio)
+            return (
+              <div className='flex flex-col'>
+                <span>{formatValue(ratio)}</span>
+                {Number.isFinite(numRatio) && (
+                  <span className='text-xs text-muted-foreground'>
+                    {formatBillingCurrencyFromUSD(numRatio * 2, { digitsLarge: 4, digitsSmall: 6 })}/1M
+                  </span>
+                )}
+              </div>
+            )
+          },
           meta: { label: 'Ratio' },
         },
         {
