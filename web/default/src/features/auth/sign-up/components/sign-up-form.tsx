@@ -98,7 +98,6 @@ export function SignUpForm({
   const hasWeChatLogin = Boolean(status?.wechat_login)
   const [qqTokenInfo, setQqTokenInfo] = useState<{
     qq_token: string
-    qq_group_name: string
   } | null>(null)
 
   const wechatQrCodeUrl = useMemo(() => {
@@ -166,12 +165,10 @@ export function SignUpForm({
         const extra = res as Record<string, unknown>
         if (
           qqGroupVerification &&
-          extra.qq_token &&
-          extra.qq_group_name
+          extra.qq_token
         ) {
           setQqTokenInfo({
             qq_token: extra.qq_token as string,
-            qq_group_name: extra.qq_group_name as string,
           })
         } else {
           toast.success(t('Account created! Please sign in'))
@@ -470,12 +467,6 @@ export function SignUpForm({
 
             <div className='grid gap-3'>
               <div className='grid gap-1'>
-                <Label>{t('QQ Group')}</Label>
-                <p className='text-sm font-medium'>
-                  {qqTokenInfo.qq_group_name}
-                </p>
-              </div>
-              <div className='grid gap-1'>
                 <Label>{t('Verification Token')}</Label>
                 <code className='bg-muted rounded-md px-3 py-2 font-mono text-sm'>
                   {qqTokenInfo.qq_token}
@@ -483,7 +474,7 @@ export function SignUpForm({
               </div>
               <p className='text-muted-foreground text-sm'>
                 {t(
-                  'Please send the token above in the QQ group. The token is valid for 10 minutes. Your QQ number must match the registered email.'
+                  'Please send the token above in the QQ group. The token is valid for 5 minutes. Your QQ number must match the registered email.'
                 )}
               </p>
             </div>

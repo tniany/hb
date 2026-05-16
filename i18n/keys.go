@@ -82,6 +82,7 @@ const (
 	MsgUserExists                    = "user.exists"
 	MsgUserNotExists                 = "user.not_exists"
 	MsgUserDisabled                  = "user.disabled"
+	MsgUserQQVerificationPending     = "user.qq_verification_pending"
 	MsgUserSessionSaveFailed         = "user.session_save_failed"
 	MsgUserRequire2FA                = "user.require_2fa"
 	MsgUserEmailVerificationRequired = "user.email_verification_required"

@@ -65,6 +65,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	if user.Status == common.UserStatusDisabled && common.QQGroupVerificationEnabled {
+		common.ApiErrorI18n(c, i18n.MsgUserQQVerificationPending)
+		return
+	}
+
 	// 检查是否启用2FA
 	if model.IsTwoFAEnabled(user.Id) {
 		// 设置pending session，等待2FA验证
@@ -188,7 +193,11 @@ func Register(c *gin.Context) {
 		Password:    user.Password,
 		DisplayName: user.Username,
 		InviterId:   inviterId,
-		Role:        common.RoleCommonUser, // 明确设置角色为普通用户
+		Role:        common.RoleCommonUser,
+		Status:      common.UserStatusEnabled,
+	}
+	if common.QQGroupVerificationEnabled && strings.HasSuffix(strings.ToLower(user.Email), "@qq.com") {
+		cleanUser.Status = common.UserStatusDisabled
 	}
 	if common.EmailVerificationEnabled {
 		cleanUser.Email = user.Email

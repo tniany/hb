@@ -56,6 +56,7 @@ func QQBotVerifyToken(c *gin.Context) {
 	}
 
 	user.QQId = req.QQNumber
+	user.Status = common.UserStatusEnabled
 	if req.QQNickname != "" {
 		user.DisplayName = req.QQNickname
 	}
