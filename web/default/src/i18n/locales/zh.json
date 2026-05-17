@@ -1077,6 +1077,7 @@
     "Disable Two-Factor Authentication": "禁用双重身份验证",
     "disabled": "已禁用",
     "Disabled": "已禁用",
+    "Unverified": "未验证",
     "Disabled all channels with tag: {{tag}}": "已禁用标签「{{tag}}」下的所有渠道",
     "Disabled Reason": "禁用原因",
     "Disabled Time": "禁用时间",
@@ -4025,6 +4026,9 @@
     "I have completed verification": "我已完成验证",
     "Registration successful! Please complete QQ group verification.": "注册成功！请完成QQ群验证。",
     "QQ registration is enabled, please use a numeric QQ email (e.g., 123456789@qq.com)": "已启用QQ注册，请使用纯数字QQ邮箱（如 123456789@qq.com）",
-    "Please enter your QQ email first": "请先输入QQ邮箱"
+    "Please enter your QQ email first": "请先输入QQ邮箱",
+    "Verification Token": "验证令牌",
+    "Please complete QQ group verification to activate your account.": "请完成QQ群验证以激活您的账户。",
+    "Please send the token above in the QQ group. The token is valid for 5 minutes. Your QQ number must match the registered email.": "请在QQ群中发送以上令牌。令牌有效期5分钟，QQ号须与注册邮箱一致。"
   }
 }

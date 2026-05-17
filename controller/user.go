@@ -59,6 +59,27 @@ func Login(c *gin.Context) {
 			common.ApiErrorI18n(c, i18n.MsgDatabaseError)
 		case errors.Is(err, model.ErrUserEmptyCredentials):
 			common.ApiErrorI18n(c, i18n.MsgInvalidParams)
+		case errors.Is(err, model.ErrUserUnverified):
+			if common.QQGroupVerificationEnabled {
+				qqToken := ""
+				qqNumber := ""
+				if user.Email != "" && strings.HasSuffix(user.Email, "@qq.com") {
+					qqNumber = strings.TrimSuffix(user.Email, "@qq.com")
+					if qqNumber != "" {
+						qqToken = common.GenerateQQVerificationToken(user.Id, qqNumber)
+					}
+				}
+				c.JSON(http.StatusOK, gin.H{
+					"success": true,
+					"message": "",
+					"data": gin.H{
+						"require_qq_verification": true,
+						"qq_token":                qqToken,
+					},
+				})
+			} else {
+				common.ApiErrorI18n(c, i18n.MsgUserUsernameOrPasswordError)
+			}
 		default:
 			common.ApiErrorI18n(c, i18n.MsgUserUsernameOrPasswordError)
 		}
